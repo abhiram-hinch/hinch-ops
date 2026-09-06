@@ -1,0 +1,31 @@
+{
+  "version": "5",
+  "specifiers": {
+    "jsr:@supabase/supabase-js@2": "2.112.4"
+  },
+  "jsr": {
+    "@supabase/supabase-js@2.112.4": {
+      "integrity": "f20220bf7de53d493d2f01aa269132b660572ba407e7de68f1b43422b9e8002a"
+    }
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@supabase/supabase-js@^2.45.4",
+        "npm:@tanstack/react-query@^5.59.0",
+        "npm:@types/react-dom@^18.3.0",
+        "npm:@types/react@^18.3.11",
+        "npm:@vitejs/plugin-react@^4.3.2",
+        "npm:autoprefixer@^10.4.20",
+        "npm:date-fns@^3.6.0",
+        "npm:lucide-react@^1.38.0",
+        "npm:postcss@^8.4.47",
+        "npm:react-dom@^18.3.1",
+        "npm:react@^18.3.1",
+        "npm:tailwindcss@^3.4.13",
+        "npm:typescript@^5.6.2",
+        "npm:vite@^5.4.8"
+      ]
+    }
+  }
+}

@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans;
+    /* Inter: open-4, single-story a — calmer, more legible at UI sizes. */
+    font-feature-settings: "cv02" 1, "cv11" 1;
+    letter-spacing: -0.006em;
+  }
+
+  /* Figures: Inter tabular so columns line up, without a separate mono face. */
+  .num {
+    @apply tabular-nums;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand ring-offset-2 ring-offset-canvas;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-lg border border-line bg-surface shadow-card;
+  }
+
+  .field {
+    @apply h-10 w-full rounded border border-line bg-surface px-3 text-sm text-ink
+           placeholder:text-faint focus:border-brand focus:outline-none
+           focus:ring-2 focus:ring-brand/20 disabled:opacity-50;
+  }
+
+  .btn {
+    @apply inline-flex select-none items-center justify-center gap-1.5 rounded font-medium
+           transition-colors disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-md {
+    @apply h-10 px-4 text-sm;
+  }
+  .btn-sm {
+    @apply h-8 px-3 text-[13px];
+  }
+  .btn-primary {
+    @apply btn bg-brand text-white hover:bg-brand/90;
+  }
+  .btn-ghost {
+    @apply btn border border-line bg-surface text-ink hover:bg-canvas;
+  }
+  .btn-soft {
+    @apply btn bg-brandSoft text-brand hover:bg-brandSoft/70;
+  }
+  .btn-danger {
+    @apply btn bg-bad text-white hover:bg-bad/90;
+  }
+
+  /* Status pill — soft tint + solid text, set per tone via inline vars. */
+  .chip {
+    @apply inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill px-2.5 py-1
+           text-[13px] font-medium;
+  }
+
+  /* Segmented / tab pills */
+  .seg {
+    @apply inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-pill px-3.5 text-[13px]
+           font-medium transition-colors;
+  }
+  .seg-on {
+    @apply seg bg-brand text-white;
+  }
+  .seg-off {
+    @apply seg text-muted hover:bg-surface hover:text-ink;
+  }
+}
+
+/* On-hold hatch — kept for the challan band. */
+.band-hold {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #b91c1c,
+    #b91c1c 3px,
+    #7f1d1d 3px,
+    #7f1d1d 6px
+  );
+}
+
+@keyframes row-touched {
+  0% {
+    background-color: rgba(79, 70, 229, 0.1);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+.row-touched {
+  animation: row-touched 1.6s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row-touched {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Delivery challan print. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-doc,
+  .print-doc * {
+    visibility: visible;
+  }
+  .print-doc {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}

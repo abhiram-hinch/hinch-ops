@@ -1,0 +1,56 @@
+project_id = "hinch-ops-dashboard"
+
+[api]
+enabled = true
+port = 55321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+# ~2,600 approved orders; the board's "All" tab needs headroom above the default.
+max_rows = 10000
+
+[db]
+port = 55322
+shadow_port = 55320
+major_version = 15
+
+[db.pooler]
+port = 55329
+
+[studio]
+enabled = true
+port = 55323
+
+[inbucket]
+port = 55324
+
+[analytics]
+port = 55327
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_signup = false          # users are added by an admin, not self-serve
+
+# enable_signup here toggles the email provider itself in current CLI versions;
+# with it false, password login returns "Email logins are disabled". Self-serve
+# signup is still blocked by [auth] enable_signup = false above.
+[auth.email]
+enable_signup = true
+enable_confirmations = false
+
+[realtime]
+enabled = true
+
+# The webhook cannot receive a Supabase JWT from Zoho. Its shared secret is the
+# auth boundary. Every other function keeps JWT verification on.
+[functions.zoho-so-webhook]
+verify_jwt = false
+
+[functions.zoho-so-poll]
+verify_jwt = true
+
+# Called by the dashboard panel on open — an authenticated user's JWT.
+[functions.zoho-so-detail]
+verify_jwt = true

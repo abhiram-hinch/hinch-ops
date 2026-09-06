@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Search, LogOut } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { Search } from "lucide-react";
 import {
   useBoard,
   useBoardTotals,
@@ -19,18 +18,10 @@ import { CustomerTypeTabs } from "./CustomerTypeTabs";
 import { SyncStatus } from "./SyncStatus";
 import { OrderPanel } from "@/features/order/OrderPanel";
 import { PaymentQueue } from "@/features/payments/PaymentQueue";
+import { AccountMenu } from "@/features/auth/AccountMenu";
 import type { BoardRow, Profile } from "@/types/database";
 
-const roleWord: Record<string, string> = {
-  admin: "Admin",
-  sales: "Sales",
-  accounts: "Accounts",
-  warehouse: "Warehouse",
-  ops: "Operations",
-  procurement: "Procurement",
-};
-
-export function OpsBoard({ profile }: { profile: Profile }) {
+export function OpsBoard({ profile, email }: { profile: Profile; email: string }) {
   const initial = useMemo(() => readBoardState(), []);
   const [filters, setFilters] = useState<BoardFilters>(initial.filters);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
@@ -119,21 +110,7 @@ export function OpsBoard({ profile }: { profile: Profile }) {
 
           <SyncStatus />
 
-          <div className="hidden items-center gap-2 sm:flex">
-            <div className="text-right">
-              <p className="text-[13px] font-semibold leading-tight text-ink">{profile.full_name}</p>
-              <p className="text-micro leading-tight text-muted">
-                {roleWord[profile.role] ?? profile.role}
-              </p>
-            </div>
-            <button
-              onClick={() => supabase.auth.signOut()}
-              className="btn-ghost btn-sm"
-              aria-label="Sign out"
-            >
-              <LogOut size={15} />
-            </button>
-          </div>
+          <AccountMenu profile={profile} email={email} />
         </div>
       </header>
 

@@ -17,7 +17,7 @@ export default function App() {
   }
   if (!profile.active) return <Splash text="This account has been deactivated." />;
 
-  return <OpsBoard profile={profile} />;
+  return <OpsBoard profile={profile} email={session.user.email ?? ""} />;
 }
 
 function Splash({ text }: { text: string }) {

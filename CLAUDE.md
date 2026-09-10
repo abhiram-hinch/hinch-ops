@@ -9,23 +9,25 @@ and lets the team see payment status and dispatch status in one shared place.
 
 ## Stack
 
-- **Frontend:** Vite + React 18 + TypeScript (strict), TanStack Query, shadcn/ui, Tailwind
+- **Frontend:** Vite + React 18 + TypeScript (strict), TanStack Query, Tailwind
 - **Backend:** Supabase — Postgres, Auth, Storage, Edge Functions (Deno), pg_cron
 - **Integration:** Zoho Books API v3, India datacenter (`zohoapis.in` / `accounts.zoho.in`)
-- **Deploy:** Vercel (frontend), `supabase functions deploy` (functions)
+- **Deploy:** Cloudflare Pages (frontend, auto-deploys on push to `main`), `supabase functions deploy` (functions)
 
 ```
 /src
-  /components      shadcn primitives + shared UI
-  /features        orders/, payments/, dispatch/  — colocated by domain
-  /lib             supabase client, query keys, formatters
+  /components      shared UI primitives — hand-rolled, no component library
+  /features        auth/, board/, order/, payments/  — colocated by domain
+  /hooks           session + profile, board queries and mutations, realtime
+  /lib             supabase client, query keys, formatters, status labels
   /types           generated from `supabase gen types typescript`
 /supabase
   /migrations      timestamped SQL, forward-only, never edited after apply
   /functions
     zoho-so-webhook/     receives Zoho workflow-rule webhook
     zoho-so-poll/        cron safety net, reconciles missed webhooks
-    _shared/             zoho auth + mapping, imported by both
+    zoho-so-detail/      on-demand sync of one order, when its panel is opened
+    _shared/             zoho auth + mapping, imported by all three
 ```
 
 ---
@@ -110,8 +112,8 @@ All amounts are `numeric(14,2)`. Never `float`. Format for display with
 7. **Field names and enum values must be confirmed against a live API response from
    our own org** before being coded against. Zoho Books, Zoho Inventory, and Zoho
    Commerce expose different fields for sales orders — docs for the wrong product will
-   compile and silently produce wrong data. Fixtures live in
-   `/supabase/functions/_shared/__fixtures__/`.
+   compile and silently produce wrong data. Save each confirmed response as a
+   fixture in `/supabase/functions/_shared/__fixtures__/`.
 8. **Store the full payload** in `sales_orders.raw`. When a mapping turns out wrong,
    backfill from `raw` instead of re-pulling 5,000 orders.
 

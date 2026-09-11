@@ -21,6 +21,7 @@ import {
   useSyncOrderDetail,
 } from "@/hooks/useBoard";
 import { CreditControl } from "./CreditControl";
+import { ProcureFirstControl } from "./ProcureFirstControl";
 import { PaymentBar, Skeleton } from "@/components/Primitives";
 import { PaymentsTab } from "./PaymentsTab";
 import { DispatchControl } from "./DispatchControl";
@@ -157,6 +158,12 @@ export function OrderPanel({
               role={profile.role}
             />
           </div>
+
+          {order.customer_credit_status === "none" && (
+            <div className="mt-2">
+              <ProcureFirstControl order={order} role={profile.role} />
+            </div>
+          )}
         </header>
 
         {/* Dispatch actions (own their own copy of the permission note) */}
@@ -436,6 +443,12 @@ function ActivityLog({ orderId }: { orderId: string }) {
         return `Sent with ${moneyExact(Number(after.shortfall ?? 0))} still due`;
       case "quote_ref_override":
         return `Quote reference changed`;
+      case "procure_first_authorised":
+        return after.note
+          ? `Approved buying the material before payment — ${String(after.note)}`
+          : `Approved buying the material before payment`;
+      case "procure_first_withdrawn":
+        return `Withdrew approval to buy before payment`;
       default:
         return a.action.replace(/^status_/, "").replace(/_/g, " ");
     }

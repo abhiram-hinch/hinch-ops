@@ -61,3 +61,12 @@ export const canSeePaymentsFor = (role: string | undefined, isCreditCustomer: bo
 
 export const canEditDispatch = (role?: string) =>
   role === "ops" || role === "warehouse" || role === "admin";
+
+/**
+ * Authorising procurement ahead of payment commits working capital to stock
+ * for a customer with no credit standing. Sales hear the request, accounts
+ * carry the exposure. Deliberately not warehouse — they move stock, they
+ * don't commit money. Mirrors can_authorize_procure_first() in Postgres.
+ */
+export const canAuthorizeProcureFirst = (role?: string) =>
+  role === "sales" || role === "accounts" || role === "admin";

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import { qk } from "@/lib/queryKeys";
@@ -8,22 +8,29 @@ import type { Profile } from "@/types/database";
 export function useSession() {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setLoading(false);
     });
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      // Every cached query is scoped to the signed-in user (their profile, and
+      // the rows RLS lets them read). Drop all of it on sign-out so the next
+      // user in this tab never sees the previous user's data.
+      if (event === "SIGNED_OUT") queryClient.clear();
+      setSession(s);
+    });
     return () => sub.subscription.unsubscribe();
-  }, []);
+  }, [queryClient]);
 
   return { session, loading };
 }
 
 export function useProfile(userId: string | undefined) {
   return useQuery({
-    queryKey: qk.profile,
+    queryKey: qk.profile(userId ?? ""),
     enabled: !!userId,
     queryFn: async (): Promise<Profile | null> => {
       const { data, error } = await supabase

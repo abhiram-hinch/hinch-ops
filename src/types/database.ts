@@ -180,6 +180,11 @@ export interface BoardRow {
   customer_credit_status: CreditStatus;
   credit_days: number | null;
   is_overdue: boolean;
+  /** Authorised to be procured ahead of payment — not a credit sale. */
+  is_procure_first: boolean;
+  procure_first_at: string | null;
+  procure_first_note: string | null;
+  procure_first_by_name: string | null;
 }
 
 export interface Customer {

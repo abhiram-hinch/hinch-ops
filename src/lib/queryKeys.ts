@@ -1,5 +1,5 @@
 export const qk = {
-  profile: ["profile"] as const,
+  profile: (userId: string) => ["profile", userId] as const,
   board: (filters: unknown) => ["board", filters] as const,
   order: (id: string) => ["order", id] as const,
   record: (id: string) => ["record", id] as const,

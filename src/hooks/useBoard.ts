@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { qk } from "@/lib/queryKeys";
 import type {
   ActivityEntry,
+  OrderComment,
   BankAccount,
   BoardRow,
   ClearanceStatus,
@@ -378,6 +379,38 @@ export function useActivity(orderId: string | null) {
       if (error) throw error;
       return (data ?? []) as ActivityEntry[];
     },
+  });
+}
+
+/** Shared notes thread on an order — cross-team communication, newest first. */
+export function useOrderComments(orderId: string | null) {
+  return useQuery({
+    queryKey: qk.comments(orderId ?? ""),
+    enabled: !!orderId,
+    queryFn: async (): Promise<OrderComment[]> => {
+      const { data, error } = await supabase
+        .from("order_comments")
+        .select("*, profiles:created_by(full_name)")
+        .eq("sales_order_id", orderId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as OrderComment[];
+    },
+  });
+}
+
+export function useAddComment(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ body, userId }: { body: string; userId: string }) => {
+      const { error } = await supabase.from("order_comments").insert({
+        sales_order_id: orderId,
+        body: body.trim(),
+        created_by: userId,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.comments(orderId) }),
   });
 }
 

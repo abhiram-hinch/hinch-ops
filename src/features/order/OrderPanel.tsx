@@ -27,9 +27,10 @@ import { PaymentsTab } from "./PaymentsTab";
 import { DispatchControl } from "./DispatchControl";
 import { DispatchTab } from "./DispatchTab";
 import { ItemsTab } from "./ItemsTab";
+import { NotesTab } from "./NotesTab";
 import type { BoardRow, Profile } from "@/types/database";
 
-type Tab = "payments" | "delivery" | "items" | "details";
+type Tab = "payments" | "delivery" | "items" | "details" | "notes";
 
 const titleCase = (s: string | null | undefined) =>
   s ? s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "—";
@@ -80,6 +81,7 @@ export function OrderPanel({
     ["delivery", "Delivery"],
     ["items", "Items"],
     ["details", "Details"],
+    ["notes", "Notes"],
   ];
 
   return (
@@ -208,6 +210,7 @@ export function OrderPanel({
               }
             />
           )}
+          {tab === "notes" && <NotesTab order={order} profile={profile} />}
         </div>
 
         <footer className="border-t border-line bg-surface px-5 py-2 text-micro text-faint">

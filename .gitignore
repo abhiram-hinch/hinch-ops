@@ -12,3 +12,6 @@ supabase/functions/.env
 
 # TS incremental build cache
 *.tsbuildinfo
+
+# Claude Code local settings / worktrees
+.claude/

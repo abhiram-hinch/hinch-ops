@@ -7,5 +7,6 @@ export const qk = {
   payments: (id: string) => ["payments", id] as const,
   dispatches: (id: string) => ["dispatches", id] as const,
   activity: (id: string) => ["activity", id] as const,
+  comments: (id: string) => ["comments", id] as const,
   syncHealth: ["sync-health"] as const,
 };

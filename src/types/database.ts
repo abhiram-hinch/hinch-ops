@@ -315,3 +315,13 @@ export interface SyncHealth {
   errors_24h: number;
   synced_last_hour: number;
 }
+
+/** A free-form note on an order — cross-team communication, not a system event. */
+export interface OrderComment {
+  id: string;
+  sales_order_id: string;
+  body: string;
+  created_by: string;
+  created_at: string;
+  profiles?: { full_name: string } | null;
+}

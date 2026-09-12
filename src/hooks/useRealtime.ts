@@ -96,6 +96,15 @@ export function useRealtimeOrders() {
           qc.invalidateQueries({ queryKey: ["lines"] });
         },
       )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "order_comments" },
+        (payload: RealtimePostgresChangesPayload<Row>) => {
+          const id = idOf(payload, "sales_order_id");
+          flash(id);
+          if (id) qc.invalidateQueries({ queryKey: ["comments", id] });
+        },
+      )
       .subscribe();
 
     return () => {

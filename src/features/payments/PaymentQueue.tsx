@@ -53,6 +53,11 @@ export function PaymentQueue({ profile }: { profile: Profile }) {
             <p className="flex flex-wrap items-center gap-2">
               <span className="num text-base font-bold text-ink">{moneyExact(r.amount)}</span>
               <span className="text-sm text-muted">{r.customer_name ?? "—"}</span>
+              {r.quotation_ref && (
+                <span className="num chip bg-brandSoft px-2 py-0.5 text-micro font-semibold text-brand">
+                  Quote {r.quotation_ref}
+                </span>
+              )}
               {r.customer_credit_status !== "none" && (
                 <span
                   className={`chip px-2 py-0.5 text-micro ${toneChip[creditTone[r.customer_credit_status]]}`}
@@ -62,8 +67,7 @@ export function PaymentQueue({ profile }: { profile: Profile }) {
               )}
             </p>
             <p className="mt-0.5 text-micro text-muted">
-              <span className="num">{r.so_number ?? "—"}</span>
-              {r.quotation_ref ? <span className="num"> · Quote {r.quotation_ref}</span> : ""} ·{" "}
+              <span className="num">{r.so_number ?? "—"}</span> ·{" "}
               {methodLabel(r.payment_method)}
               {r.reference_no ? ` · ${r.reference_no}` : ""} · paid {shortDate(r.paid_on)}
               {r.deposited_to_label ? ` · into ${r.deposited_to_label}` : ""}

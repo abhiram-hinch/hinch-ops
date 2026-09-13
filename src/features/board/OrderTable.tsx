@@ -80,9 +80,15 @@ export function OrderTable({
 
             {/* Tier 1 — who + where it is */}
             <div className="flex items-start justify-between gap-3">
-              <p className="min-w-0 truncate text-[15px] font-semibold text-ink">
-                {r.customer_name ?? "Unnamed customer"}
-              </p>
+              <div className="min-w-0">
+                <p className="truncate text-[15px] font-semibold text-ink">
+                  {r.customer_name ?? "Unnamed customer"}
+                </p>
+                <p className="mt-0.5 flex items-center gap-1.5 text-micro text-muted">
+                  <span className="num">{r.so_number ?? "—"}</span>
+                  {quote && <span className="num font-semibold text-ink">Quote {quote}</span>}
+                </p>
+              </div>
               <StatusBadge status={r.dispatch_status} size="sm" />
             </div>
 
@@ -106,9 +112,7 @@ export function OrderTable({
             {/* Tier 3 — reference line, dim */}
             <div className="mt-1.5 flex items-center justify-between gap-3 text-micro text-faint">
               <span className="truncate">
-                <span className="num">{r.so_number ?? "—"}</span>
-                {quote && <span className="num"> · {quote}</span>}
-                <span> · {shortDate(r.order_date)}</span>
+                <span>{shortDate(r.order_date)}</span>
                 {r.salesperson_name && <span> · {r.salesperson_name}</span>}
               </span>
               <span className={`num shrink-0 ${aged ? "font-semibold text-warn" : ""}`}>

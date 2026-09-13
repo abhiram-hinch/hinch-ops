@@ -265,14 +265,14 @@ function QuoteRef({ order, editable }: { order: BoardRow; editable: boolean }) {
 
   return (
     <button
-      className={`num inline-flex items-center gap-1 ${editable ? "hover:text-ink" : "cursor-default"} ${
-        overridden ? "font-semibold text-ink" : ""
-      }`}
+      className={`num inline-flex items-center gap-1 rounded-pill px-1.5 py-0.5 font-semibold ${
+        shown ? "bg-brandSoft text-brand" : "text-muted"
+      } ${editable ? "hover:opacity-80" : "cursor-default"}`}
       onClick={() => editable && setEditing(true)}
       title={overridden ? `Overrides Zoho: ${order.quotation_ref ?? "none"}` : undefined}
     >
-      {shown ?? (editable ? "add quote #" : "—")}
-      {editable && <Pencil size={10} className="text-faint" />}
+      {shown ? `Quote ${shown}` : editable ? "add quote #" : "—"}
+      {editable && <Pencil size={10} className="opacity-60" />}
     </button>
   );
 }

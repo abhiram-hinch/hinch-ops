@@ -31,6 +31,7 @@ import {
   useVoidPayment,
 } from "@/hooks/useBoard";
 import { ErrorNote, Field, Input, Select, Skeleton } from "@/components/Primitives";
+import { NotesTab } from "./NotesTab";
 import type {
   BoardRow,
   CardNetwork,
@@ -552,6 +553,11 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
             : "Could not update that payment."}
         </p>
       )}
+
+      <div className="border-t border-line pt-4">
+        <h3 className="mb-3 text-[13px] font-semibold text-ink">Notes</h3>
+        <NotesTab order={order} profile={profile} />
+      </div>
     </div>
   );
 }

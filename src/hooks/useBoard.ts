@@ -18,6 +18,8 @@ import type {
   OrderRecord,
   Payment,
   PaymentInput,
+  PaymentDailyTotal,
+  PaymentWeeklyTotal,
   Profile,
   PaymentQueueRow,
   PaymentStatus,
@@ -411,6 +413,42 @@ export function useAddComment(orderId: string) {
       if (error) throw new Error(error.message);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: qk.comments(orderId) }),
+  });
+}
+
+/** Admin-only: last 30 days of payment totals, most recent first. */
+export function usePaymentDailyReport(enabled = true) {
+  return useQuery({
+    queryKey: qk.paymentReportDaily,
+    enabled,
+    queryFn: async (): Promise<PaymentDailyTotal[]> => {
+      const { data, error } = await supabase
+        .from("v_payment_daily_totals")
+        .select("*")
+        .order("day", { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return (data ?? []) as PaymentDailyTotal[];
+    },
+    staleTime: 60_000,
+  });
+}
+
+/** Admin-only: last 12 weeks of payment totals, most recent first. */
+export function usePaymentWeeklyReport(enabled = true) {
+  return useQuery({
+    queryKey: qk.paymentReportWeekly,
+    enabled,
+    queryFn: async (): Promise<PaymentWeeklyTotal[]> => {
+      const { data, error } = await supabase
+        .from("v_payment_weekly_totals")
+        .select("*")
+        .order("week_start", { ascending: false })
+        .limit(12);
+      if (error) throw error;
+      return (data ?? []) as PaymentWeeklyTotal[];
+    },
+    staleTime: 60_000,
   });
 }
 

@@ -325,3 +325,21 @@ export interface OrderComment {
   created_at: string;
   profiles?: { full_name: string } | null;
 }
+
+/** Row shape of v_payment_daily_totals — admin-only reporting. */
+export interface PaymentDailyTotal {
+  day: string;
+  payment_count: number;
+  total_amount: number;
+  cleared_amount: number;
+  pending_amount: number;
+}
+
+/** Row shape of v_payment_weekly_totals — admin-only reporting. */
+export interface PaymentWeeklyTotal {
+  week_start: string;
+  payment_count: number;
+  total_amount: number;
+  cleared_amount: number;
+  pending_amount: number;
+}

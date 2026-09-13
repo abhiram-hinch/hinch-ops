@@ -18,6 +18,7 @@ import { CustomerTypeTabs } from "./CustomerTypeTabs";
 import { SyncStatus } from "./SyncStatus";
 import { OrderPanel } from "@/features/order/OrderPanel";
 import { PaymentQueue } from "@/features/payments/PaymentQueue";
+import { PaymentReports } from "@/features/payments/PaymentReports";
 import { AccountMenu } from "@/features/auth/AccountMenu";
 import type { BoardRow, Profile } from "@/types/database";
 
@@ -25,8 +26,9 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
   const initial = useMemo(() => readBoardState(), []);
   const [filters, setFilters] = useState<BoardFilters>(initial.filters);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
-  const [view, setView] = useState<"board" | "queue">("board");
+  const [view, setView] = useState<"board" | "queue" | "reports">("board");
   const mayClear = canClearPayments(profile.role);
+  const isAdmin = profile.role === "admin";
   const { data: pendingQueue } = usePaymentQueue(mayClear);
   const pendingCount = pendingQueue?.length ?? 0;
 
@@ -105,6 +107,16 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
                   </span>
                 )}
               </button>
+              {isAdmin && (
+                <button
+                  onClick={() => setView("reports")}
+                  className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
+                    view === "reports" ? "bg-brand text-white" : "text-muted hover:text-ink"
+                  }`}
+                >
+                  Reports
+                </button>
+              )}
             </div>
           )}
 
@@ -117,6 +129,8 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
       <div className="mx-auto max-w-6xl px-4 pb-24 pt-4 sm:px-6">
         {view === "queue" ? (
           <PaymentQueue profile={profile} />
+        ) : view === "reports" ? (
+          <PaymentReports />
         ) : (
         <>
         {/* One calm toolbar: the customer lens, then date / payment / person */}

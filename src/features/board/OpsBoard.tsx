@@ -18,7 +18,7 @@ import { CustomerTypeTabs } from "./CustomerTypeTabs";
 import { SyncStatus } from "./SyncStatus";
 import { OrderPanel } from "@/features/order/OrderPanel";
 import { PaymentQueue } from "@/features/payments/PaymentQueue";
-import { PaymentReports } from "@/features/payments/PaymentReports";
+import { AnalyticsPage } from "@/features/analytics/AnalyticsPage";
 import { AccountMenu } from "@/features/auth/AccountMenu";
 import type { BoardRow, Profile } from "@/types/database";
 
@@ -26,7 +26,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
   const initial = useMemo(() => readBoardState(), []);
   const [filters, setFilters] = useState<BoardFilters>(initial.filters);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
-  const [view, setView] = useState<"board" | "queue" | "reports">("board");
+  const [view, setView] = useState<"board" | "queue" | "analytics">("board");
   const mayClear = canClearPayments(profile.role);
   const isAdmin = profile.role === "admin";
   const { data: pendingQueue } = usePaymentQueue(mayClear);
@@ -109,12 +109,12 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
               </button>
               {isAdmin && (
                 <button
-                  onClick={() => setView("reports")}
+                  onClick={() => setView("analytics")}
                   className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
-                    view === "reports" ? "bg-brand text-white" : "text-muted hover:text-ink"
+                    view === "analytics" ? "bg-brand text-white" : "text-muted hover:text-ink"
                   }`}
                 >
-                  Reports
+                  Analytics
                 </button>
               )}
             </div>
@@ -129,8 +129,8 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
       <div className="mx-auto max-w-6xl px-4 pb-24 pt-4 sm:px-6">
         {view === "queue" ? (
           <PaymentQueue profile={profile} />
-        ) : view === "reports" ? (
-          <PaymentReports />
+        ) : view === "analytics" ? (
+          <AnalyticsPage />
         ) : (
         <>
         {/* One calm toolbar: the customer lens, then date / payment / person */}

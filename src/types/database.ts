@@ -326,20 +326,33 @@ export interface OrderComment {
   profiles?: { full_name: string } | null;
 }
 
-/** Row shape of v_payment_daily_totals — admin-only reporting. */
-export interface PaymentDailyTotal {
-  day: string;
-  payment_count: number;
-  total_amount: number;
-  cleared_amount: number;
-  pending_amount: number;
+/** Row shape of v_sales_orders_slim — admin analytics, client-aggregated. */
+export interface SalesOrderSlim {
+  id: string;
+  order_date: string | null;
+  salesperson_name: string | null;
+  customer_name: string | null;
+  total: number;
 }
 
-/** Row shape of v_payment_weekly_totals — admin-only reporting. */
-export interface PaymentWeeklyTotal {
-  week_start: string;
-  payment_count: number;
-  total_amount: number;
-  cleared_amount: number;
-  pending_amount: number;
+/** Row shape of v_payments_slim — admin analytics, client-aggregated. */
+export interface PaymentSlim {
+  paid_on: string;
+  amount: number;
+  payment_method: PaymentMethod;
+  clearance_status: ClearanceStatus;
+}
+
+/** Row shape of v_delivery_performance — one row per delivered order with a promised date. */
+export interface DeliveryPerformanceRow {
+  sales_order_id: string;
+  delivery_date: string;
+  delivered_at: string;
+}
+
+/** Row shape of v_dispatch_daily — admin analytics. */
+export interface DispatchDailyRow {
+  day: string;
+  dispatch_count: number;
+  delivered_count: number;
 }

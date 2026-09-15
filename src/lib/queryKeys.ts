@@ -9,6 +9,9 @@ export const qk = {
   activity: (id: string) => ["activity", id] as const,
   comments: (id: string) => ["comments", id] as const,
   syncHealth: ["sync-health"] as const,
-  paymentReportDaily: ["payment-report", "daily"] as const,
-  paymentReportWeekly: ["payment-report", "weekly"] as const,
+  salesSlim: (from: string | null) => ["analytics", "sales", from] as const,
+  paymentsSlim: (from: string | null) => ["analytics", "payments", from] as const,
+  deliveryPerformance: (from: string | null) => ["analytics", "delivery", from] as const,
+  dispatchDaily: (from: string | null) => ["analytics", "dispatch-daily", from] as const,
+  stageSnapshot: ["analytics", "stage-snapshot"] as const,
 };

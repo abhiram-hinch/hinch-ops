@@ -6,9 +6,11 @@ import type {
   OrderComment,
   BankAccount,
   BoardRow,
+  BuildingType,
   ClearanceStatus,
   CreditStatus,
   Customer,
+  DeliverySiteDetails,
   Dispatch,
   DispatchInput,
   DispatchStatus,
@@ -608,6 +610,48 @@ export function useSetQuoteRef(orderId: string) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["board"] });
       qc.invalidateQueries({ queryKey: qk.activity(orderId) });
+    },
+  });
+}
+
+export function useSiteDetails(orderId: string | null) {
+  return useQuery({
+    queryKey: qk.siteDetails(orderId ?? ""),
+    enabled: !!orderId,
+    queryFn: async (): Promise<DeliverySiteDetails | null> => {
+      const { data, error } = await supabase
+        .from("delivery_site_details")
+        .select("*")
+        .eq("sales_order_id", orderId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data as DeliverySiteDetails | null;
+    },
+  });
+}
+
+export function useSaveSiteDetails(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      building_type: BuildingType | null;
+      block: string | null;
+      floor: string | null;
+      flat_or_villa_no: string | null;
+      has_service_lift: boolean | null;
+      maps_url: string | null;
+      notes: string | null;
+      userId: string;
+    }) => {
+      const { userId, ...fields } = input;
+      const { error } = await supabase
+        .from("delivery_site_details")
+        .upsert({ sales_order_id: orderId, ...fields, updated_by: userId, updated_at: new Date().toISOString() });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: qk.siteDetails(orderId) });
+      qc.invalidateQueries({ queryKey: ["board"] });
     },
   });
 }

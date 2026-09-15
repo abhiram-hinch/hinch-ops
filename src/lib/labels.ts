@@ -1,4 +1,5 @@
 import type {
+  BuildingType,
   ClearanceStatus,
   CreditStatus,
   DispatchStatus,
@@ -7,6 +8,22 @@ import type {
   PaymentStatus,
   SettableStage,
 } from "@/types/database";
+
+export const BUILDING_TYPES: BuildingType[] = [
+  "apartment",
+  "villa",
+  "independent_house",
+  "commercial",
+  "other",
+];
+
+export const buildingTypeLabel: Record<BuildingType, string> = {
+  apartment: "Apartment",
+  villa: "Villa",
+  independent_house: "Independent house",
+  commercial: "Commercial",
+  other: "Other",
+};
 
 /** Board / status-rail order, left to right. Follows the SOP ladder. */
 export const DISPATCH_FLOW: DispatchStatus[] = [

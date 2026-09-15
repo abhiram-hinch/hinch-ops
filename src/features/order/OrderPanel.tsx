@@ -28,9 +28,10 @@ import { DispatchControl } from "./DispatchControl";
 import { DispatchTab } from "./DispatchTab";
 import { ItemsTab } from "./ItemsTab";
 import { NotesTab } from "./NotesTab";
+import { SiteTab } from "./SiteTab";
 import type { BoardRow, Profile } from "@/types/database";
 
-type Tab = "payments" | "delivery" | "items" | "details" | "notes";
+type Tab = "payments" | "delivery" | "items" | "details" | "notes" | "site";
 
 const titleCase = (s: string | null | undefined) =>
   s ? s.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "—";
@@ -80,6 +81,7 @@ export function OrderPanel({
     ...(showPayments ? ([["payments", "Payments"]] as [Tab, string][]) : []),
     ["delivery", "Delivery"],
     ["items", "Items"],
+    ["site", "Site"],
     ["details", "Details"],
     ["notes", "Notes"],
   ];
@@ -200,6 +202,7 @@ export function OrderPanel({
           {tab === "payments" && <PaymentsTab order={order} profile={profile} />}
           {tab === "delivery" && <DispatchTab order={order} profile={profile} />}
           {tab === "items" && <ItemsTab order={order} syncing={syncDetail.isPending} />}
+          {tab === "site" && <SiteTab order={order} profile={profile} />}
           {tab === "details" && (
             <DetailsTab
               order={order}

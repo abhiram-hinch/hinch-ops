@@ -38,3 +38,19 @@ export function relativeTime(iso: string | null): string {
 
 export const paidRatio = (received: number, total: number) =>
   total <= 0 ? 0 : Math.min(1, Math.max(0, received / total));
+
+/** Google Maps search link built from the Zoho-synced ship-to address. No API key needed. */
+export function mapsUrl(ship_to: {
+  address?: string;
+  street2?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+} | null): string | null {
+  if (!ship_to) return null;
+  const query = [ship_to.address, ship_to.street2, ship_to.city, ship_to.state, ship_to.zip]
+    .filter((v) => v && v.trim())
+    .join(", ");
+  if (!query) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}

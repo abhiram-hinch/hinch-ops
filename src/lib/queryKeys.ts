@@ -8,6 +8,7 @@ export const qk = {
   dispatches: (id: string) => ["dispatches", id] as const,
   activity: (id: string) => ["activity", id] as const,
   comments: (id: string) => ["comments", id] as const,
+  siteDetails: (id: string) => ["site-details", id] as const,
   syncHealth: ["sync-health"] as const,
   salesSlim: (from: string | null) => ["analytics", "sales", from] as const,
   paymentsSlim: (from: string | null) => ["analytics", "payments", from] as const,

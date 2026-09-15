@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { AlertTriangle, PackagePlus } from "lucide-react";
+import { AlertTriangle, ArrowUpDown, PackagePlus } from "lucide-react";
 import { PaymentBar } from "@/components/Primitives";
 import { StatusBadge, toneChip, toneText } from "@/lib/statusUi";
 import { money, shortDate } from "@/lib/format";
@@ -124,7 +124,10 @@ export function OrderTable({
               <p className="mt-1.5 text-micro font-medium text-bad">On hold — {r.hold_reason}</p>
             )}
 
-            {(r.customer_credit_status !== "none" || r.is_overdue || r.is_procure_first) && (
+            {(r.customer_credit_status !== "none" ||
+              r.is_overdue ||
+              r.is_procure_first ||
+              r.has_service_lift === false) && (
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 {r.customer_credit_status !== "none" && (
                   <span
@@ -141,6 +144,11 @@ export function OrderTable({
                 {r.is_overdue && (
                   <span className="chip bg-badSoft px-2 py-0.5 text-micro text-bad">
                     <AlertTriangle size={11} /> Payment overdue
+                  </span>
+                )}
+                {r.has_service_lift === false && (
+                  <span className="chip bg-warnSoft px-2 py-0.5 text-micro text-warn">
+                    <ArrowUpDown size={11} /> No lift
                   </span>
                 )}
               </div>

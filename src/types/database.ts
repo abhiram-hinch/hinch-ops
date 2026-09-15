@@ -185,6 +185,23 @@ export interface BoardRow {
   procure_first_at: string | null;
   procure_first_note: string | null;
   procure_first_by_name: string | null;
+  /** null = not recorded yet. See delivery_site_details for the rest. */
+  has_service_lift: boolean | null;
+}
+
+export type BuildingType = "apartment" | "villa" | "independent_house" | "commercial" | "other";
+
+/** Delivery site logistics — captured for dispatch/hamali planning, not from Zoho. */
+export interface DeliverySiteDetails {
+  sales_order_id: string;
+  building_type: BuildingType | null;
+  block: string | null;
+  floor: string | null;
+  flat_or_villa_no: string | null;
+  has_service_lift: boolean | null;
+  notes: string | null;
+  updated_by: string | null;
+  updated_at: string;
 }
 
 export interface Customer {

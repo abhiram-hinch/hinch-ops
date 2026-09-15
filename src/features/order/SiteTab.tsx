@@ -21,6 +21,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
   const [floor, setFloor] = useState("");
   const [flatOrVilla, setFlatOrVilla] = useState("");
   const [lift, setLift] = useState("");
+  const [mapsOverride, setMapsOverride] = useState("");
   const [notes, setNotes] = useState("");
   const [justSaved, setJustSaved] = useState(false);
 
@@ -31,6 +32,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
     setFloor(data.floor ?? "");
     setFlatOrVilla(data.flat_or_villa_no ?? "");
     setLift(data.has_service_lift === null ? "" : data.has_service_lift ? "yes" : "no");
+    setMapsOverride(data.maps_url ?? "");
     setNotes(data.notes ?? "");
   }, [data]);
 
@@ -41,19 +43,21 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
   }, [justSaved]);
 
   async function submit() {
+    const trimmedMaps = mapsOverride.trim();
     await save.mutateAsync({
       building_type: buildingType || null,
       block: block.trim() || null,
       floor: floor.trim() || null,
       flat_or_villa_no: flatOrVilla.trim() || null,
       has_service_lift: lift === "" ? null : lift === "yes",
+      maps_url: trimmedMaps ? (/^https?:\/\//i.test(trimmedMaps) ? trimmedMaps : `https://${trimmedMaps}`) : null,
       notes: notes.trim() || null,
       userId: profile.id,
     });
     setJustSaved(true);
   }
 
-  const maps = mapsUrl(order.ship_to);
+  const maps = data?.maps_url || mapsUrl(order.ship_to);
 
   if (isLoading) return <Skeleton rows={5} />;
 
@@ -61,13 +65,19 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
     <div className="space-y-4">
       <div className="card p-3.5">
         <p className="mb-2 text-[13px] font-semibold text-ink">Location</p>
-        {maps ? (
-          <a href={maps} target="_blank" rel="noopener noreferrer" className="btn-soft btn-sm gap-1.5">
-            <MapPin size={13} /> Open in Maps
-          </a>
-        ) : (
-          <p className="text-[13px] text-muted">No address on this order yet.</p>
-        )}
+        <div className="flex items-center gap-2">
+          {maps ? (
+            <a href={maps} target="_blank" rel="noopener noreferrer" className="btn-soft btn-sm gap-1.5">
+              <MapPin size={13} /> Open in Maps
+            </a>
+          ) : (
+            <p className="text-[13px] text-muted">No address on this order yet.</p>
+          )}
+          {maps && !data?.maps_url && (
+            <span className="text-micro text-faint">Guessed from Zoho's address — may be off</span>
+          )}
+          {data?.maps_url && <span className="text-micro text-good">Corrected location saved</span>}
+        </div>
       </div>
 
       <div className="card p-3.5">
@@ -107,6 +117,22 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
               <Input value={flatOrVilla} onChange={(e) => setFlatOrVilla(e.target.value)} className="w-full" />
             </Field>
           </div>
+        </div>
+
+        <div className="mt-3">
+          <p className="mb-1 text-[13px] font-medium text-muted">
+            Precise location <span className="text-faint">(optional)</span>
+          </p>
+          <Input
+            value={mapsOverride}
+            onChange={(e) => setMapsOverride(e.target.value)}
+            placeholder="Paste a Google Maps share link if the address above is wrong"
+            className="w-full"
+          />
+          <p className="mt-1 text-micro text-faint">
+            Find the actual spot in Google Maps, share it, and paste the link here — it takes over from the
+            auto-guessed address.
+          </p>
         </div>
 
         <div className="mt-3">

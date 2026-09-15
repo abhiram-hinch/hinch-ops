@@ -639,6 +639,7 @@ export function useSaveSiteDetails(orderId: string) {
       floor: string | null;
       flat_or_villa_no: string | null;
       has_service_lift: boolean | null;
+      maps_url: string | null;
       notes: string | null;
       userId: string;
     }) => {

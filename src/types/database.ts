@@ -199,6 +199,8 @@ export interface DeliverySiteDetails {
   floor: string | null;
   flat_or_villa_no: string | null;
   has_service_lift: boolean | null;
+  /** Corrected Maps link, pasted by hand — Zoho's ship_to text is often not accurate enough to search on. */
+  maps_url: string | null;
   notes: string | null;
   updated_by: string | null;
   updated_at: string;

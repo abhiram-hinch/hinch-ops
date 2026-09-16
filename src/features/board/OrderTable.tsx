@@ -49,7 +49,7 @@ export function OrderTable({
   }, [rows, selectedId, onSelect]);
 
   return (
-    <div className="space-y-1.5">
+    <div className="space-y-2">
       {rows.map((r) => {
         const selected = r.id === selectedId;
         const pv = paymentView(r);
@@ -71,7 +71,7 @@ export function OrderTable({
             key={r.id}
             onClick={() => onSelect(r)}
             aria-current={selected}
-            className={`card relative w-full overflow-hidden px-4 py-3 text-left transition
+            className={`card relative w-full overflow-hidden px-5 py-4 text-left transition
                         hover:border-lineStrong hover:shadow-raised
                         ${selected ? "ring-2 ring-brand ring-offset-1 ring-offset-canvas" : ""}
                         ${touched.has(r.id) ? "row-touched" : ""}`}
@@ -94,7 +94,7 @@ export function OrderTable({
 
             {/* Tier 2 — the money picture */}
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
-              <span className="num text-[15px] font-semibold text-ink">{money(r.total)}</span>
+              <span className="num text-base font-bold text-ink">{money(r.total)}</span>
               <PaymentBar
                 received={r.amount_received}
                 total={r.total}

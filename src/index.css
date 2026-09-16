@@ -28,7 +28,7 @@
 
 @layer components {
   .card {
-    @apply rounded-lg border border-line bg-surface shadow-card;
+    @apply rounded-lg border border-line/70 bg-surface shadow-card;
   }
 
   .field {
@@ -48,7 +48,7 @@
     @apply h-8 px-3 text-[13px];
   }
   .btn-primary {
-    @apply btn bg-brand text-white hover:bg-brand/90;
+    @apply btn bg-brand text-white shadow-card hover:bg-brand/90;
   }
   .btn-ghost {
     @apply btn border border-line bg-surface text-ink hover:bg-canvas;

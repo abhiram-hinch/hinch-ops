@@ -60,9 +60,9 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
-          <h1 className="shrink-0 text-lg font-bold tracking-tight text-ink">
+      <header className="sticky top-0 z-20 border-b border-line/70 bg-surface/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-6xl items-center gap-5 px-4 py-4 sm:px-6">
+          <h1 className="shrink-0 text-xl font-bold tracking-tight text-ink">
             HINCH <span className="text-brand">Ops</span>
           </h1>
 
@@ -126,7 +126,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-4 pb-24 pt-4 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:px-6">
         {view === "queue" ? (
           <PaymentQueue profile={profile} />
         ) : view === "analytics" ? (

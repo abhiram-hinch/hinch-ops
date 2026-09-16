@@ -5,20 +5,20 @@ export default {
     extend: {
       colors: {
         // Surfaces
-        canvas: "#F1F5F9", // page background
+        canvas: "#F6F7FB", // page background — cool, airy neutral
         surface: "#FFFFFF",
-        raised: "#F8FAFC", // subtle inset panels
+        raised: "#FAFBFD", // subtle inset panels
 
         // Text + lines
         ink: "#0F172A",
         muted: "#64748B",
         faint: "#94A3B8",
-        line: "#E2E8F0",
+        line: "#E7EAF0",
         lineStrong: "#CBD5E1",
 
-        // Brand
-        brand: "#4F46E5",
-        brandSoft: "#EEF2FF",
+        // Brand — blurple, closer to the "confident fintech SaaS" reference
+        brand: "#635BFF",
+        brandSoft: "#F0EFFF",
 
         // Semantic — each has a solid + a soft tint for pills
         good: "#15803D",
@@ -51,16 +51,16 @@ export default {
         micro: ["0.6875rem", { lineHeight: "1rem" }],
       },
       borderRadius: {
-        sm: "6px",
-        DEFAULT: "10px",
-        lg: "14px",
-        xl: "20px",
+        sm: "8px",
+        DEFAULT: "12px",
+        lg: "16px",
+        xl: "24px",
         pill: "9999px",
       },
       boxShadow: {
-        card: "0 1px 2px rgba(15,23,42,0.04), 0 1px 3px rgba(15,23,42,0.06)",
-        raised: "0 2px 8px rgba(15,23,42,0.08)",
-        pop: "0 12px 40px rgba(15,23,42,0.16)",
+        card: "0 1px 2px rgba(15,23,42,0.03), 0 2px 6px rgba(15,23,42,0.05)",
+        raised: "0 4px 16px rgba(15,23,42,0.08)",
+        pop: "0 16px 48px rgba(15,23,42,0.18)",
       },
     },
   },

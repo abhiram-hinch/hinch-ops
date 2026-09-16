@@ -20,7 +20,7 @@ export const categoricalColor = (i: number) => CATEGORICAL[i % CATEGORICAL.lengt
 /** Single-series trend line with a hover crosshair + tooltip. */
 export function TrendLine({
   data,
-  color = "#4F46E5",
+  color = "#635BFF",
   formatValue = (v: number) => String(v),
   height = 160,
 }: {
@@ -79,7 +79,7 @@ export function TrendLine({
             x2={width - padR}
             y1={y(g)}
             y2={y(g)}
-            stroke="#E2E8F0"
+            stroke="#E7EAF0"
             strokeWidth={1}
           />
         ))}

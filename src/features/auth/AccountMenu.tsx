@@ -25,7 +25,7 @@ export function AccountMenu({ profile, email }: { profile: Profile; email: strin
         className="flex shrink-0 items-center gap-2 rounded-pill border border-line px-2 py-1 hover:bg-canvas"
         aria-label="Account"
       >
-        <span className="grid h-6 w-6 place-items-center rounded-full bg-brandSoft text-micro font-bold text-brand">
+        <span className="grid h-6 w-6 place-items-center rounded-full bg-brandSoft text-micro font-bold text-brandStrong">
           {initial}
         </span>
         <span className="hidden max-w-[140px] truncate text-[13px] font-semibold text-ink sm:inline">

@@ -269,7 +269,7 @@ function QuoteRef({ order, editable }: { order: BoardRow; editable: boolean }) {
   return (
     <button
       className={`num inline-flex items-center gap-1 rounded-pill px-1.5 py-0.5 font-semibold ${
-        shown ? "bg-brandSoft text-brand" : "text-muted"
+        shown ? "bg-brandSoft text-brandStrong" : "text-muted"
       } ${editable ? "hover:opacity-80" : "cursor-default"}`}
       onClick={() => editable && setEditing(true)}
       title={overridden ? `Overrides Zoho: ${order.quotation_ref ?? "none"}` : undefined}

@@ -64,7 +64,7 @@ export function NotesTab({ order, profile }: { order: BoardRow; profile: Profile
         <ul className="space-y-3">
           {data.map((c) => (
             <li key={c.id} className="flex gap-2.5">
-              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brandSoft text-micro font-bold text-brand">
+              <span className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full bg-brandSoft text-micro font-bold text-brandStrong">
                 {(c.profiles?.full_name?.trim()?.[0] ?? "?").toUpperCase()}
               </span>
               <div className="min-w-0 flex-1 rounded-lg bg-raised px-3 py-2">

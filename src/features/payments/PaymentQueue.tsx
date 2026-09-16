@@ -54,7 +54,7 @@ export function PaymentQueue({ profile }: { profile: Profile }) {
               <span className="num text-base font-bold text-ink">{moneyExact(r.amount)}</span>
               <span className="text-sm text-muted">{r.customer_name ?? "—"}</span>
               {r.quotation_ref && (
-                <span className="num chip bg-brandSoft px-2 py-0.5 text-micro font-semibold text-brand">
+                <span className="num chip bg-brandSoft px-2 py-0.5 text-micro font-semibold text-brandStrong">
                   Quote {r.quotation_ref}
                 </span>
               )}

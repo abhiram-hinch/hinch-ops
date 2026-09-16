@@ -26,7 +26,7 @@ import type { DispatchStatus } from "@/types/database";
 /** tone -> tailwind classes. Soft pill, coloured dot, coloured bar. */
 export const toneChip: Record<Tone, string> = {
   neutral: "bg-canvas text-muted",
-  brand: "bg-brandSoft text-brand",
+  brand: "bg-brandSoft text-brandStrong",
   good: "bg-goodSoft text-good",
   warn: "bg-warnSoft text-warn",
   bad: "bg-badSoft text-bad",

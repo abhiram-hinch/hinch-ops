@@ -12,13 +12,17 @@ export default {
         // Text + lines
         ink: "#0F172A",
         muted: "#64748B",
-        faint: "#94A3B8",
+        faint: "#5D6B7F", // darkened from a lighter slate to clear 4.5:1 (WCAG AA) — this is read as real text, not decoration
         line: "#E7EAF0",
         lineStrong: "#CBD5E1",
+        fieldBorder: "#788699", // form-control boundary; clears the 3:1 non-text contrast minimum line/lineStrong don't
 
         // Brand — blurple, closer to the "confident fintech SaaS" reference
         brand: "#635BFF",
         brandSoft: "#F0EFFF",
+        // Darker text-on-brandSoft variant — brand itself only clears 4.14:1 on
+        // brandSoft (fails AA for normal text); this clears 6.3:1.
+        brandStrong: "#4A3FD1",
 
         // Semantic — each has a solid + a soft tint for pills
         good: "#15803D",

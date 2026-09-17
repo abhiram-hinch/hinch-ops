@@ -1,9 +1,18 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
-import { money, relativeTime, shortDate } from "@/lib/format";
-import { creditLabel, creditTone, paymentView, paymentViewLabel, paymentViewTone } from "@/lib/labels";
+import { money, moneyExact, relativeTime, shortDate } from "@/lib/format";
+import {
+  clearanceLabel,
+  clearanceTone,
+  creditLabel,
+  creditTone,
+  methodLabel,
+  paymentView,
+  paymentViewLabel,
+  paymentViewTone,
+} from "@/lib/labels";
 import { StatusBadge, toneChip, toneText } from "@/lib/statusUi";
-import { useCustomer, useCustomerNotes, useCustomerOrders } from "@/hooks/useCustomers";
+import { useCustomer, useCustomerNotes, useCustomerOrders, useCustomerPayments } from "@/hooks/useCustomers";
 import { ErrorNote, Skeleton } from "@/components/Primitives";
 
 export function CustomerPanel({
@@ -18,6 +27,7 @@ export function CustomerPanel({
   const { data: customer, isLoading: loadingCustomer } = useCustomer(customerId);
   const { data: orders, isLoading: loadingOrders, error } = useCustomerOrders(customerId);
   const orderIds = orders?.map((o) => o.id) ?? [];
+  const { data: payments } = useCustomerPayments(orderIds);
   const { data: notes } = useCustomerNotes(orderIds);
 
   useEffect(() => {
@@ -113,6 +123,36 @@ export function CustomerPanel({
                     );
                   })}
                 </ul>
+              </section>
+
+              <section>
+                <h3 className="mb-2 text-[13px] font-semibold text-ink">
+                  Payments received <span className="text-faint">({payments?.length ?? 0})</span>
+                </h3>
+                {(!payments || payments.length === 0) && (
+                  <p className="text-[13px] text-muted">No payments recorded on any of their orders yet.</p>
+                )}
+                {payments && payments.length > 0 && (
+                  <ul className="divide-y divide-line border-y border-line">
+                    {payments.map((p) => (
+                      <li key={p.id} className="flex items-start justify-between gap-3 py-2.5">
+                        <div>
+                          <p className="num flex items-center gap-2 text-sm font-medium text-ink">
+                            {moneyExact(p.amount)}
+                            <span className={`chip px-2 py-0.5 text-micro ${toneChip[clearanceTone[p.clearance_status]]}`}>
+                              {clearanceLabel[p.clearance_status]}
+                            </span>
+                          </p>
+                          <p className="text-micro text-faint">
+                            {methodLabel(p.payment_method)}
+                            {p.bank_accounts?.label ? ` · into ${p.bank_accounts.label}` : ""}
+                            {p.so_number ? ` · ${p.so_number}` : ""} · paid {shortDate(p.paid_on)}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </section>
 
               <section>

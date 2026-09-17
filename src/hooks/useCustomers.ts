@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import type { BoardRow, CustomerSummary, OrderComment } from "@/types/database";
+import type { BoardRow, CustomerSummary, OrderComment, Payment } from "@/types/database";
 
 /** Every customer with at least one real order, richest first. */
 export function useCustomerSummaries() {
@@ -47,6 +47,31 @@ export function useCustomerOrders(customerId: string | null) {
         .order("order_date", { ascending: false });
       if (error) throw error;
       return (data ?? []) as BoardRow[];
+    },
+  });
+}
+
+/** Every payment recorded against any of this customer's orders, newest first. */
+export function useCustomerPayments(orderIds: string[]) {
+  return useQuery({
+    queryKey: ["customers", "payments", orderIds.slice().sort().join(",")],
+    enabled: orderIds.length > 0,
+    queryFn: async (): Promise<(Payment & { so_number: string | null })[]> => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select(
+          "*, profiles:recorded_by(full_name), bank_accounts:deposited_to(label), sales_orders!inner(so_number)",
+        )
+        .in("sales_order_id", orderIds)
+        .eq("voided", false)
+        .order("paid_on", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map((row) => {
+        const { sales_orders, ...rest } = row as unknown as {
+          sales_orders: { so_number: string | null };
+        } & Payment;
+        return { ...rest, so_number: sales_orders?.so_number ?? null };
+      });
     },
   });
 }

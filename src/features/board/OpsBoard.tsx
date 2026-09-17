@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import {
   useBoard,
+  useBoardRow,
   useBoardTotals,
   usePaymentQueue,
   emptyFilters,
@@ -19,6 +20,7 @@ import { SyncStatus } from "./SyncStatus";
 import { OrderPanel } from "@/features/order/OrderPanel";
 import { PaymentQueue } from "@/features/payments/PaymentQueue";
 import { AnalyticsPage } from "@/features/analytics/AnalyticsPage";
+import { CustomersPage } from "@/features/customers/CustomersPage";
 import { AccountMenu } from "@/features/auth/AccountMenu";
 import type { BoardRow, Profile } from "@/types/database";
 
@@ -26,7 +28,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
   const initial = useMemo(() => readBoardState(), []);
   const [filters, setFilters] = useState<BoardFilters>(initial.filters);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
-  const [view, setView] = useState<"board" | "queue" | "analytics">("board");
+  const [view, setView] = useState<"board" | "queue" | "analytics" | "customers">("board");
   const mayClear = canClearPayments(profile.role);
   const isAdmin = profile.role === "admin";
   const { data: pendingQueue } = usePaymentQueue(mayClear);
@@ -55,7 +57,11 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
     [rows],
   );
 
-  const selected = rows?.find((r) => r.id === selectedId) ?? null;
+  const inRowsSelected = rows?.find((r) => r.id === selectedId) ?? null;
+  // An order opened from outside the board's active filters (e.g. a
+  // customer's older orders) won't be in `rows` — fetch it directly.
+  const fallback = useBoardRow(selectedId && !inRowsSelected ? selectedId : null);
+  const selected = inRowsSelected ?? fallback.data ?? null;
   const patch = (p: Partial<BoardFilters>) => setFilters((f) => ({ ...f, ...p }));
 
   return (
@@ -80,16 +86,24 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
             />
           </div>
 
-          {mayClear && (
-            <div className="hidden shrink-0 rounded-pill border border-line p-0.5 sm:flex">
-              <button
-                onClick={() => setView("board")}
-                className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
-                  view === "board" ? "bg-brand text-white" : "text-muted hover:text-ink"
-                }`}
-              >
-                Board
-              </button>
+          <div className="hidden shrink-0 rounded-pill border border-line p-0.5 sm:flex">
+            <button
+              onClick={() => setView("board")}
+              className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
+                view === "board" ? "bg-brand text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              Board
+            </button>
+            <button
+              onClick={() => setView("customers")}
+              className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
+                view === "customers" ? "bg-brand text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              Customers
+            </button>
+            {mayClear && (
               <button
                 onClick={() => setView("queue")}
                 className={`flex items-center gap-1.5 rounded-pill px-3 py-1 text-[13px] font-semibold ${
@@ -107,18 +121,18 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
                   </span>
                 )}
               </button>
-              {isAdmin && (
-                <button
-                  onClick={() => setView("analytics")}
-                  className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
-                    view === "analytics" ? "bg-brand text-white" : "text-muted hover:text-ink"
-                  }`}
-                >
-                  Analytics
-                </button>
-              )}
-            </div>
-          )}
+            )}
+            {isAdmin && (
+              <button
+                onClick={() => setView("analytics")}
+                className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
+                  view === "analytics" ? "bg-brand text-white" : "text-muted hover:text-ink"
+                }`}
+              >
+                Analytics
+              </button>
+            )}
+          </div>
 
           <SyncStatus />
 
@@ -131,6 +145,8 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
           <PaymentQueue profile={profile} />
         ) : view === "analytics" ? (
           <AnalyticsPage />
+        ) : view === "customers" ? (
+          <CustomersPage onSelectOrder={setSelectedId} />
         ) : (
         <>
         {/* One calm toolbar: the customer lens, then date / payment / person */}

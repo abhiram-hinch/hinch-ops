@@ -59,6 +59,14 @@ export interface DispatchLine {
   } | null;
 }
 
+export interface DispatchPhoto {
+  id: string;
+  dispatch_id: string;
+  storage_path: string;
+  uploaded_by: string | null;
+  uploaded_at: string;
+}
+
 export interface Dispatch {
   id: string;
   sales_order_id: string;
@@ -75,6 +83,7 @@ export interface Dispatch {
   created_by: string | null;
   profiles?: { full_name: string } | null;
   dispatch_lines?: DispatchLine[];
+  dispatch_photos?: DispatchPhoto[];
 }
 
 export interface DispatchInput {
@@ -187,6 +196,7 @@ export interface BoardRow {
   procure_first_by_name: string | null;
   /** null = not recorded yet. See delivery_site_details for the rest. */
   has_service_lift: boolean | null;
+  customer_id: string | null;
 }
 
 export type BuildingType = "apartment" | "villa" | "independent_house" | "commercial" | "other";
@@ -214,6 +224,21 @@ export interface Customer {
   credit_limit: number | null;
   credit_days: number | null;
   notes: string | null;
+}
+
+/** Row shape of v_customer_summary — one row per customer with >=1 real order. */
+export interface CustomerSummary {
+  id: string;
+  name: string | null;
+  credit_status: CreditStatus;
+  credit_limit: number | null;
+  credit_days: number | null;
+  notes: string | null;
+  order_count: number;
+  total_value: number;
+  total_received: number;
+  total_outstanding: number;
+  last_order_date: string | null;
 }
 
 export interface PaymentQueueRow {

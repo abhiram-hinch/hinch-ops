@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Check, Pencil, X } from "lucide-react";
 import { money, moneyExact, relativeTime, shortDate } from "@/lib/format";
 import {
   clearanceLabel,
@@ -11,16 +11,89 @@ import {
   paymentViewLabel,
   paymentViewTone,
 } from "@/lib/labels";
+import { canSetCreditHold } from "@/hooks/useAuth";
 import { StatusBadge, toneChip, toneText } from "@/lib/statusUi";
-import { useCustomer, useCustomerNotes, useCustomerOrders, useCustomerPayments } from "@/hooks/useCustomers";
+import {
+  useCustomer,
+  useCustomerNotes,
+  useCustomerOrders,
+  useCustomerPayments,
+  useSetOpeningBalance,
+} from "@/hooks/useCustomers";
 import { ErrorNote, Skeleton } from "@/components/Primitives";
+import type { Profile } from "@/types/database";
+
+function OpeningBalanceField({
+  customerId,
+  value,
+  editable,
+}: {
+  customerId: string;
+  value: number;
+  editable: boolean;
+}) {
+  const setBalance = useSetOpeningBalance(customerId);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+
+  if (editing) {
+    return (
+      <span className="mt-2 flex items-center gap-1.5 text-micro">
+        <span className="text-faint">Opening balance received</span>
+        <input
+          type="number"
+          inputMode="decimal"
+          autoFocus
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              setBalance.mutate(Number(draft) || 0, { onSuccess: () => setEditing(false) });
+            }
+            if (e.key === "Escape") setEditing(false);
+          }}
+          className="field num h-6 w-28 px-1.5 text-micro"
+        />
+        <button
+          className="text-good"
+          aria-label="Save opening balance"
+          onClick={() => setBalance.mutate(Number(draft) || 0, { onSuccess: () => setEditing(false) })}
+        >
+          <Check size={13} />
+        </button>
+      </span>
+    );
+  }
+
+  if (!editable && value === 0) return null;
+
+  return (
+    <p className="mt-2 flex items-center gap-1.5 text-micro text-faint">
+      Opening balance received: <span className="num text-ink">{money(value)}</span>
+      {editable && (
+        <button
+          onClick={() => {
+            setDraft(String(value));
+            setEditing(true);
+          }}
+          aria-label="Edit opening balance"
+          className="hover:text-ink"
+        >
+          <Pencil size={11} />
+        </button>
+      )}
+    </p>
+  );
+}
 
 export function CustomerPanel({
   customerId,
+  profile,
   onClose,
   onSelectOrder,
 }: {
   customerId: string;
+  profile: Profile;
   onClose: () => void;
   onSelectOrder: (orderId: string) => void;
 }) {
@@ -29,6 +102,7 @@ export function CustomerPanel({
   const orderIds = orders?.map((o) => o.id) ?? [];
   const { data: payments } = useCustomerPayments(orderIds);
   const { data: notes } = useCustomerNotes(orderIds);
+  const mayEditBalance = canSetCreditHold(profile.role);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -83,6 +157,13 @@ export function CustomerPanel({
           )}
           {customer?.credit_limit != null && (
             <p className="mt-2 text-micro text-faint">Credit limit {money(customer.credit_limit)}</p>
+          )}
+          {customer && (
+            <OpeningBalanceField
+              customerId={customerId}
+              value={customer.opening_balance_paid}
+              editable={mayEditBalance}
+            />
           )}
           {customer?.notes && <p className="mt-2 text-[13px] text-ink">{customer.notes}</p>}
         </header>

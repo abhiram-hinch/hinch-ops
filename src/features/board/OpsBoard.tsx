@@ -146,7 +146,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
         ) : view === "analytics" ? (
           <AnalyticsPage />
         ) : view === "customers" ? (
-          <CustomersPage onSelectOrder={setSelectedId} />
+          <CustomersPage profile={profile} onSelectOrder={setSelectedId} />
         ) : (
         <>
         {/* One calm toolbar: the customer lens, then date / payment / person */}

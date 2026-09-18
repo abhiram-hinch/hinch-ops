@@ -147,6 +147,12 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
   const parsed = Number(amount);
   const needs = (k: (typeof spec.needs)[number]) => spec.needs.includes(k);
 
+  // Cash can only land in a cash box (Kapish / Abhiram) — never straight into a
+  // bank account, so don't offer bank accounts as a destination for it.
+  const accountOptions = (accounts ?? []).filter((a) =>
+    method === "cash" ? a.kind === "cash_box" : true,
+  );
+
   const missing =
     !Number.isFinite(parsed) ||
     parsed === 0 ||
@@ -167,6 +173,12 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
     const t = setTimeout(() => setJustSaved(false), 2600);
     return () => clearTimeout(t);
   }, [justSaved]);
+
+  // Switching method can invalidate the picked account (e.g. a bank account
+  // no longer makes sense once Cash is selected) — don't leave a stale pick.
+  useEffect(() => {
+    setDepositedTo("");
+  }, [method]);
 
   function reset() {
     setAmount("");
@@ -250,7 +262,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
                   className="w-full"
                 >
                   <option value="">Select account…</option>
-                  {(accounts ?? []).map((a) => (
+                  {accountOptions.map((a) => (
                     <option key={a.id} value={a.id}>
                       {a.label}
                     </option>

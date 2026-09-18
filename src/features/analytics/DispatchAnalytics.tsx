@@ -1,7 +1,8 @@
 import { useMemo } from "react";
-import { PauseCircle, Truck } from "lucide-react";
+import { Download, PauseCircle, Truck } from "lucide-react";
 import { ACTIONABLE_DISPATCH, dispatchShort } from "@/lib/labels";
 import { bucketSum, granularityFor } from "@/lib/analyticsPeriod";
+import { downloadCsv } from "@/lib/csv";
 import { BarRows, TrendLine } from "@/components/Charts";
 import {
   useDeliveryPerformance,
@@ -58,8 +59,30 @@ export function DispatchAnalytics({ from, range }: { from: string | null; range:
   if (stage.error) return <ErrorNote error={stage.error} retry={() => stage.refetch()} />;
   if (dispatchDaily.error) return <ErrorNote error={dispatchDaily.error} retry={() => dispatchDaily.refetch()} />;
 
+  function exportCsv() {
+    if (!dispatchDaily.data) return;
+    downloadCsv(
+      `dispatch-volume-${range}.csv`,
+      dispatchDaily.data.map((r) => ({
+        day: r.day,
+        dispatch_count: r.dispatch_count,
+        delivered_count: r.delivered_count,
+      })),
+    );
+  }
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <button
+          onClick={exportCsv}
+          disabled={!dispatchDaily.data?.length}
+          className="btn-ghost btn-sm gap-1.5"
+        >
+          <Download size={14} /> Export CSV
+        </button>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="card p-3.5">
           <p className="flex items-center gap-1 text-micro text-muted">

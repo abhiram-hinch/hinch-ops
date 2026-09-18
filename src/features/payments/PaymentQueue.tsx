@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, Download, XCircle } from "lucide-react";
 import { money, moneyExact, shortDate } from "@/lib/format";
 import { creditLabel, creditTone, methodLabel } from "@/lib/labels";
 import { toneChip } from "@/lib/statusUi";
+import { downloadCsv } from "@/lib/csv";
 import { usePaymentQueue, useSetPaymentClearance } from "@/hooks/useBoard";
 import { Empty, ErrorNote, Skeleton } from "@/components/Primitives";
 import type { Profile } from "@/types/database";
@@ -39,13 +40,34 @@ export function PaymentQueue({ profile }: { profile: Profile }) {
 
   const total = data.reduce((s, r) => s + Number(r.amount ?? 0), 0);
 
+  function exportCsv() {
+    downloadCsv(
+      "payments-queue.csv",
+      data!.map((r) => ({
+        so_number: r.so_number,
+        quotation_ref: r.quotation_ref,
+        customer_name: r.customer_name,
+        amount: r.amount,
+        payment_method: r.payment_method,
+        reference_no: r.reference_no,
+        paid_on: r.paid_on,
+        deposited_to_label: r.deposited_to_label,
+      })),
+    );
+  }
+
   return (
     <div className="space-y-2">
-      <p className="text-[13px] text-muted">
-        <span className="num font-semibold text-ink">{data.length}</span> payment
-        {data.length > 1 ? "s" : ""} awaiting confirmation ·{" "}
-        <span className="num">{money(total)}</span>
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-[13px] text-muted">
+          <span className="num font-semibold text-ink">{data.length}</span> payment
+          {data.length > 1 ? "s" : ""} awaiting confirmation ·{" "}
+          <span className="num">{money(total)}</span>
+        </p>
+        <button onClick={exportCsv} className="btn-ghost btn-sm gap-1.5">
+          <Download size={14} /> Export CSV
+        </button>
+      </div>
 
       {data.map((r) => (
         <div key={r.id} className="card flex items-start justify-between gap-3 p-4">

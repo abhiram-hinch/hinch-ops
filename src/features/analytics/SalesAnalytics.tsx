@@ -1,7 +1,8 @@
 import { useMemo } from "react";
-import { TrendingUp } from "lucide-react";
+import { Download, TrendingUp } from "lucide-react";
 import { money, moneyShort } from "@/lib/format";
 import { bucketSum, granularityFor } from "@/lib/analyticsPeriod";
+import { downloadCsv } from "@/lib/csv";
 import { BarRows, TrendLine, categoricalColor } from "@/components/Charts";
 import { useSalesOrdersSlim, type AnalyticsRange } from "@/hooks/useAnalytics";
 import { ErrorNote, Skeleton } from "@/components/Primitives";
@@ -52,8 +53,27 @@ export function SalesAnalytics({ from, range }: { from: string | null; range: An
   if (isLoading) return <Skeleton rows={6} />;
   if (error) return <ErrorNote error={error} retry={() => refetch()} />;
 
+  function exportCsv() {
+    if (!data) return;
+    downloadCsv(
+      `sales-orders-${range}.csv`,
+      data.map((r) => ({
+        order_date: r.order_date,
+        customer_name: r.customer_name,
+        salesperson_name: r.salesperson_name,
+        total: r.total,
+      })),
+    );
+  }
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <button onClick={exportCsv} disabled={!data?.length} className="btn-ghost btn-sm gap-1.5">
+          <Download size={14} /> Export CSV
+        </button>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="card p-3.5">
           <p className="text-micro text-muted">Order value</p>

@@ -1,8 +1,9 @@
 import { useMemo } from "react";
-import { AlertTriangle, TrendingUp } from "lucide-react";
+import { AlertTriangle, Download, TrendingUp } from "lucide-react";
 import { money, moneyShort, shortDate } from "@/lib/format";
 import { methodLabel } from "@/lib/labels";
 import { bucketSum, granularityFor } from "@/lib/analyticsPeriod";
+import { downloadCsv } from "@/lib/csv";
 import { BarRows, TrendLine, categoricalColor } from "@/components/Charts";
 import { useCreditExposure, usePaymentsSlim, type AnalyticsRange } from "@/hooks/useAnalytics";
 import { ErrorNote, Skeleton } from "@/components/Primitives";
@@ -90,8 +91,27 @@ export function PaymentsAnalytics({ from, range }: { from: string | null; range:
   if (isLoading) return <Skeleton rows={6} />;
   if (error) return <ErrorNote error={error} retry={() => refetch()} />;
 
+  function exportCsv() {
+    if (!data) return;
+    downloadCsv(
+      `payments-${range}.csv`,
+      data.map((r) => ({
+        paid_on: r.paid_on,
+        amount: r.amount,
+        payment_method: r.payment_method,
+        clearance_status: r.clearance_status,
+      })),
+    );
+  }
+
   return (
     <div className="space-y-6">
+      <div className="flex justify-end">
+        <button onClick={exportCsv} disabled={!data?.length} className="btn-ghost btn-sm gap-1.5">
+          <Download size={14} /> Export CSV
+        </button>
+      </div>
+
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <div className="card p-3.5">
           <p className="text-micro text-muted">Payments received</p>

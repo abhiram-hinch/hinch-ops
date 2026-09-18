@@ -134,6 +134,27 @@ export function useBoard(filters: BoardFilters) {
 }
 
 /**
+ * Single-order fallback for when an id is opened from outside the board's own
+ * filtered rows (e.g. from a customer's full order history) — the board's
+ * useBoard() list won't contain it if it falls outside the active filters.
+ */
+export function useBoardRow(orderId: string | null) {
+  return useQuery({
+    queryKey: qk.order(orderId ?? ""),
+    enabled: !!orderId,
+    queryFn: async (): Promise<BoardRow | null> => {
+      const { data, error } = await supabase
+        .from("v_ops_board")
+        .select("*")
+        .eq("id", orderId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data as BoardRow | null;
+    },
+  });
+}
+
+/**
  * Per-status counts for the filter chips — scoped to the SAME date / salesperson
  * / search as the board (but not the status filter itself), so a chip's number
  * always matches what tapping it shows.
@@ -685,12 +706,62 @@ export function useDispatches(orderId: string | null) {
       const { data, error } = await supabase
         .from("dispatches")
         .select(
-          "*, profiles:created_by(full_name), dispatch_lines(id, quantity, sales_order_line_id, sales_order_lines(item_name, item_sku, unit))",
+          "*, profiles:created_by(full_name), dispatch_lines(id, quantity, sales_order_line_id, sales_order_lines(item_name, item_sku, unit)), dispatch_photos(*)",
         )
         .eq("sales_order_id", orderId!)
         .order("dispatched_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as Dispatch[];
+    },
+  });
+}
+
+/** Attach one or more delivery-proof photos to a dispatch. */
+export function useAddDispatchPhotos(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      dispatchId,
+      files,
+      userId,
+    }: {
+      dispatchId: string;
+      files: File[];
+      userId: string;
+    }) => {
+      for (const file of files) {
+        const ext = file.name.includes(".") ? file.name.split(".").pop() : "jpg";
+        const path = `${orderId}/${dispatchId}/${crypto.randomUUID()}.${ext}`;
+        const up = await supabase.storage.from("delivery-photos").upload(path, file, {
+          contentType: file.type || "image/jpeg",
+          upsert: false,
+        });
+        if (up.error) throw new Error(`Photo upload failed: ${up.error.message}`);
+
+        const { error } = await supabase.from("dispatch_photos").insert({
+          dispatch_id: dispatchId,
+          storage_path: path,
+          uploaded_by: userId,
+        });
+        if (error) throw new Error(`Could not attach photo: ${error.message}`);
+      }
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.dispatches(orderId) }),
+  });
+}
+
+/** Short-lived signed URL for one private delivery-photos object. */
+export function usePhotoUrl(path: string | null) {
+  return useQuery({
+    queryKey: ["dispatch-photo-url", path],
+    enabled: !!path,
+    staleTime: 50_000,
+    queryFn: async (): Promise<string | null> => {
+      const { data, error } = await supabase.storage
+        .from("delivery-photos")
+        .createSignedUrl(path!, 120);
+      if (error) throw error;
+      return data?.signedUrl ?? null;
     },
   });
 }

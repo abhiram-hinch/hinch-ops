@@ -1,17 +1,78 @@
-import { useMemo, useState } from "react";
-import { PackageCheck, Plus, Printer, Undo2 } from "lucide-react";
+import { useMemo, useRef, useState } from "react";
+import { Camera, PackageCheck, Plus, Printer, Undo2 } from "lucide-react";
 import { canEditDispatch } from "@/hooks/useAuth";
 import {
   useAddDispatch,
+  useAddDispatchPhotos,
   useDeleteDispatch,
   useDispatches,
   useOrderLines,
+  usePhotoUrl,
   useUpdateDispatch,
 } from "@/hooks/useBoard";
 import { lineState, lineStateColor, pendingQty } from "@/lib/labels";
 import { Field, Input, Skeleton } from "@/components/Primitives";
 import { ChallanDoc } from "./ChallanDoc";
-import type { BoardRow, Dispatch, Profile } from "@/types/database";
+import type { BoardRow, Dispatch, DispatchPhoto, Profile } from "@/types/database";
+
+function DeliveryPhotoThumb({ photo }: { photo: DispatchPhoto }) {
+  const { data: url, isLoading } = usePhotoUrl(photo.storage_path);
+  if (isLoading) return <div className="h-14 w-14 shrink-0 animate-pulse rounded bg-line/60" />;
+  if (!url) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block h-14 w-14 shrink-0 overflow-hidden rounded border border-line"
+    >
+      <img src={url} alt="Delivery proof" className="h-full w-full object-cover" />
+    </a>
+  );
+}
+
+function AddPhotoButton({
+  orderId,
+  dispatchId,
+  userId,
+}: {
+  orderId: string;
+  dispatchId: string;
+  userId: string;
+}) {
+  const add = useAddDispatchPhotos(orderId);
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        multiple
+        className="hidden"
+        onChange={(e) => {
+          const files = Array.from(e.target.files ?? []);
+          if (files.length) add.mutate({ dispatchId, files, userId });
+          if (ref.current) ref.current.value = "";
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => ref.current?.click()}
+        disabled={add.isPending}
+        className="btn-soft btn-sm gap-1.5"
+      >
+        <Camera size={14} /> {add.isPending ? "Uploading…" : "Add photo"}
+      </button>
+      {add.error && (
+        <span className="text-micro text-bad">
+          {add.error instanceof Error ? add.error.message : "Upload failed"}
+        </span>
+      )}
+    </>
+  );
+}
 
 const fmt = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString("en-IN", { day: "2-digit", month: "short" }) : "—";
@@ -145,6 +206,17 @@ export function DispatchTab({ order, profile }: { order: BoardRow; profile: Prof
                   </span>
                 )}
               </div>
+
+              {((d.dispatch_photos?.length ?? 0) > 0 || mayEdit) && (
+                <div className="mt-2.5 flex flex-wrap items-center gap-2">
+                  {(d.dispatch_photos ?? []).map((p) => (
+                    <DeliveryPhotoThumb key={p.id} photo={p} />
+                  ))}
+                  {mayEdit && (
+                    <AddPhotoButton orderId={order.id} dispatchId={d.id} userId={profile.id} />
+                  )}
+                </div>
+              )}
 
               {/* Prominent actions */}
               <div className="mt-3 flex flex-wrap items-center gap-2">

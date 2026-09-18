@@ -239,6 +239,8 @@ export interface CustomerSummary {
   total_received: number;
   total_outstanding: number;
   last_order_date: string | null;
+  /** Manually recorded — payments made before this app's ledger existed. */
+  opening_balance_paid: number;
 }
 
 export interface PaymentQueueRow {

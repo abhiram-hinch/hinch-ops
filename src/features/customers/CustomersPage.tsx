@@ -6,8 +6,15 @@ import { toneChip } from "@/lib/statusUi";
 import { useCustomerSummaries } from "@/hooks/useCustomers";
 import { Empty, ErrorNote, Skeleton } from "@/components/Primitives";
 import { CustomerPanel } from "./CustomerPanel";
+import type { Profile } from "@/types/database";
 
-export function CustomersPage({ onSelectOrder }: { onSelectOrder: (orderId: string) => void }) {
+export function CustomersPage({
+  profile,
+  onSelectOrder,
+}: {
+  profile: Profile;
+  onSelectOrder: (orderId: string) => void;
+}) {
   const { data, isLoading, error, refetch } = useCustomerSummaries();
   const [search, setSearch] = useState("");
   const [openId, setOpenId] = useState<string | null>(null);
@@ -84,6 +91,7 @@ export function CustomersPage({ onSelectOrder }: { onSelectOrder: (orderId: stri
       {openId && (
         <CustomerPanel
           customerId={openId}
+          profile={profile}
           onClose={() => setOpenId(null)}
           onSelectOrder={onSelectOrder}
         />

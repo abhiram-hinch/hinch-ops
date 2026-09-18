@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import type { BoardRow, CustomerSummary, OrderComment, Payment } from "@/types/database";
 
@@ -30,6 +30,27 @@ export function useCustomer(customerId: string | null) {
         .maybeSingle();
       if (error) throw error;
       return data as CustomerSummary | null;
+    },
+  });
+}
+
+/**
+ * Manual correction for payments made before this app's ledger existed —
+ * common on older customers whose orders predate payment tracking here.
+ */
+export function useSetOpeningBalance(customerId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (amount: number) => {
+      const { error } = await supabase
+        .from("customers")
+        .update({ opening_balance_paid: amount })
+        .eq("id", customerId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["customers", "one", customerId] });
+      qc.invalidateQueries({ queryKey: ["customers", "summary"] });
     },
   });
 }

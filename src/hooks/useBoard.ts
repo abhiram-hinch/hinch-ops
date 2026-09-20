@@ -21,6 +21,7 @@ import type {
   Payment,
   PaymentInput,
   Profile,
+  ProcurementLocation,
   PaymentQueueRow,
   PaymentStatus,
   SettableStage,
@@ -97,11 +98,18 @@ export function presetRange(p: DatePreset): { from: string; to: string } | null 
   return { from: ymd(start), to: today };
 }
 
-export function useBoard(filters: BoardFilters) {
+/**
+ * Warehouse doesn't act on an order until it's out of awaiting_clearance —
+ * there's nothing for them to do while it's still waiting on payment, so it's
+ * excluded from their board entirely rather than just deprioritised.
+ */
+export function useBoard(filters: BoardFilters, role?: string) {
   return useQuery({
-    queryKey: qk.board(filters),
+    queryKey: qk.board({ filters, role: role === "warehouse" ? role : undefined }),
     queryFn: async (): Promise<BoardRow[]> => {
       let q = supabase.from("v_ops_board").select("*").order("order_date", { ascending: false });
+
+      if (role === "warehouse") q = q.neq("dispatch_status", "awaiting_clearance");
 
       if (filters.dispatch === "attention") {
         q = q.eq("needs_attention", true);
@@ -166,14 +174,15 @@ export interface BoardTotals {
   customer: { all: number; regular: number; credit: number };
 }
 
-export function useBoardTotals(filters: BoardFilters) {
+export function useBoardTotals(filters: BoardFilters, role?: string) {
   return useQuery({
-    queryKey: ["board", "totals", filters],
+    queryKey: ["board", "totals", filters, role === "warehouse" ? role : undefined],
     queryFn: async (): Promise<BoardTotals> => {
       let q = supabase
         .from("v_ops_board")
         .select("dispatch_status, total, balance_due, needs_attention, customer_credit_status");
 
+      if (role === "warehouse") q = q.neq("dispatch_status", "awaiting_clearance");
       if (filters.payment !== "all") q = q.eq("payment_status", filters.payment);
       if (filters.salesperson) q = q.eq("salesperson_name", filters.salesperson);
       const range = presetRange(filters.datePreset);
@@ -234,12 +243,61 @@ export function useOrderLines(orderId: string | null) {
       const { data, error } = await supabase
         .from("sales_order_lines")
         .select(
-          "id, item_name, item_sku, description, hsn_or_sac, unit, line_item_kind, quantity, qty_dispatched, rate, amount, line_order",
+          "id, item_name, item_sku, description, hsn_or_sac, unit, line_item_kind, quantity, qty_dispatched, rate, amount, line_order, vendor_name",
         )
         .eq("sales_order_id", orderId!)
         .order("line_order");
       if (error) throw error;
       return (data ?? []) as OrderLine[];
+    },
+  });
+}
+
+/** Warehouse tags each line with who they're procuring it from. */
+export function useUpdateLineVendor(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ lineId, vendorName }: { lineId: string; vendorName: string | null }) => {
+      const { error } = await supabase
+        .from("sales_order_lines")
+        .update({ vendor_name: vendorName })
+        .eq("id", lineId);
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: qk.lines(orderId) }),
+  });
+}
+
+export function useProcurementLocations() {
+  return useQuery({
+    queryKey: ["procurement-locations"],
+    queryFn: async (): Promise<ProcurementLocation[]> => {
+      const { data, error } = await supabase
+        .from("procurement_locations")
+        .select("*")
+        .eq("active", true)
+        .order("label");
+      if (error) throw error;
+      return (data ?? []) as ProcurementLocation[];
+    },
+    staleTime: 5 * 60_000,
+  });
+}
+
+/** Sales calls the shot on where an order is procured from. */
+export function useSetProcurementLocation(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (locationId: string | null) => {
+      const { error } = await supabase.rpc("set_procurement_location", {
+        p_so: orderId,
+        p_location_id: locationId,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["board"] });
+      qc.invalidateQueries({ queryKey: qk.activity(orderId) });
     },
   });
 }

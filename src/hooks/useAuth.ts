@@ -77,3 +77,17 @@ export const canEditDispatch = (role?: string) =>
  */
 export const canAuthorizeProcureFirst = (role?: string) =>
   role === "sales" || role === "accounts" || role === "admin";
+
+/**
+ * Site details gate procurement (see site_details_complete() in Postgres),
+ * so only the team that's accountable for filling them in — sales — can
+ * edit them. Warehouse (and everyone else) reads them. Mirrors the
+ * write_site_details RLS policy.
+ */
+export const canEditSiteDetails = (role?: string) => role === "sales" || role === "admin";
+
+/** Mirrors can_set_procurement_location() in Postgres. */
+export const canSetProcurementLocation = (role?: string) => role === "sales" || role === "admin";
+
+/** Vendor tagging on line items is procurement's job — mirrors write_line_vendor RLS. */
+export const canEditLineVendor = (role?: string) => canEditDispatch(role);

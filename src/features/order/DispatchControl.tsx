@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronRight, FileText, PackageCheck, PauseCircle } from "lucide-react";
+import { ChevronRight, FileText, MapPin, PackageCheck, PauseCircle } from "lucide-react";
 import {
   HOLD_REASONS,
   SETTABLE_STAGES,
@@ -8,10 +8,10 @@ import {
   orderActionLabel,
   showStageStepper,
 } from "@/lib/labels";
-import { canEditDispatch } from "@/hooks/useAuth";
-import { useOrderAction } from "@/hooks/useBoard";
+import { canEditDispatch, canSetProcurementLocation } from "@/hooks/useAuth";
+import { useOrderAction, useProcurementLocations, useSetProcurementLocation } from "@/hooks/useBoard";
 import { money } from "@/lib/format";
-import { Input } from "@/components/Primitives";
+import { Input, Select } from "@/components/Primitives";
 import type { BoardRow, DispatchStatus, OrderAction, Profile } from "@/types/database";
 
 /** Stages where starting a delivery challan makes sense. */
@@ -22,6 +22,41 @@ const CHALLAN_STAGES: DispatchStatus[] = [
   "dispatched",
   "partially_delivered",
 ];
+
+/** Sales calls this; warehouse just needs to see it plainly. */
+function ProcurementLocationControl({ order, profile }: { order: BoardRow; profile: Profile }) {
+  const { data: locations } = useProcurementLocations();
+  const setLocation = useSetProcurementLocation(order.id);
+  const mayEdit = canSetProcurementLocation(profile.role);
+
+  if (!mayEdit) {
+    return order.procurement_location_label ? (
+      <p className="mb-2.5 flex items-center gap-1.5 text-[13px] font-medium text-ink">
+        <MapPin size={13} className="text-muted" /> Procuring from {order.procurement_location_label}
+      </p>
+    ) : null;
+  }
+
+  return (
+    <div className="mb-2.5 flex items-center gap-2">
+      <MapPin size={13} className="shrink-0 text-muted" />
+      <Select
+        value={order.procurement_location_id ?? ""}
+        onChange={(e) => setLocation.mutate(e.target.value || null)}
+        disabled={setLocation.isPending}
+        className="h-8 flex-1 text-[13px]"
+        aria-label="Procurement location"
+      >
+        <option value="">Procure from — not set</option>
+        {(locations ?? []).map((l) => (
+          <option key={l.id} value={l.id}>
+            {l.label}
+          </option>
+        ))}
+      </Select>
+    </div>
+  );
+}
 
 export function DispatchControl({
   order,
@@ -48,9 +83,10 @@ export function DispatchControl({
 
   if (!mayEdit) {
     return (
-      <p className="px-5 py-2 text-micro text-faint">
-        Your team can view dispatch status but not change it.
-      </p>
+      <div className="px-5 py-2">
+        <ProcurementLocationControl order={order} profile={profile} />
+        <p className="text-micro text-faint">Your team can view dispatch status but not change it.</p>
+      </div>
     );
   }
 
@@ -64,6 +100,7 @@ export function DispatchControl({
 
   return (
     <div className="px-5 py-3">
+      <ProcurementLocationControl order={order} profile={profile} />
       {awaitingClearance && (
         <p className="mb-2.5 rounded bg-warnSoft/50 px-3 py-2 text-[13px] font-medium text-warn">
           Waiting for accounts to confirm the payment — the order moves to procurement on its own

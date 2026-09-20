@@ -197,6 +197,17 @@ export interface BoardRow {
   /** null = not recorded yet. See delivery_site_details for the rest. */
   has_service_lift: boolean | null;
   customer_id: string | null;
+  /** True when this order is fully paid (or credit_regular) but still stuck
+   *  at awaiting_clearance because site details aren't complete yet. */
+  blocked_on_site_details: boolean;
+  procurement_location_id: string | null;
+  procurement_location_label: string | null;
+}
+
+export interface ProcurementLocation {
+  id: string;
+  label: string;
+  active: boolean;
 }
 
 export type BuildingType = "apartment" | "villa" | "independent_house" | "commercial" | "other";
@@ -291,6 +302,7 @@ export interface OrderLine {
   rate: number;
   amount: number;
   line_order: number | null;
+  vendor_name: string | null;
 }
 
 export interface PaymentReceipt {

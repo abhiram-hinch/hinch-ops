@@ -201,7 +201,7 @@ export function OrderPanel({
         <div className="flex-1 overflow-y-auto p-5">
           {tab === "payments" && <PaymentsTab order={order} profile={profile} />}
           {tab === "delivery" && <DispatchTab order={order} profile={profile} />}
-          {tab === "items" && <ItemsTab order={order} syncing={syncDetail.isPending} />}
+          {tab === "items" && <ItemsTab order={order} profile={profile} syncing={syncDetail.isPending} />}
           {tab === "site" && <SiteTab order={order} profile={profile} />}
           {tab === "details" && (
             <DetailsTab

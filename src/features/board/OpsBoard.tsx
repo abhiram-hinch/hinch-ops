@@ -49,8 +49,8 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
   }, []);
 
   const touched = useRealtimeOrders();
-  const { data: rows, isLoading, error, refetch } = useBoard(filters);
-  const { data: totals } = useBoardTotals(filters);
+  const { data: rows, isLoading, error, refetch } = useBoard(filters, profile.role);
+  const { data: totals } = useBoardTotals(filters, profile.role);
 
   const salespeople = useMemo(
     () => [...new Set((rows ?? []).map((r) => r.salesperson_name).filter(Boolean) as string[])].sort(),

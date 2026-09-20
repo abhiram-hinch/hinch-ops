@@ -15,7 +15,26 @@
 -- that's otherwise eligible but blocked on site details simply stays
 -- at awaiting_clearance until sales finishes the Site tab; a new
 -- trigger on delivery_site_details releases it the moment they do.
+--
+-- The gate only applies to orders placed on or after
+-- site_details_gate_effective_from (app_config). Every order already
+-- sitting in Zoho before the cutover — including ones synced in later
+-- as backdated/historical records — is grandfathered in and behaves
+-- exactly as it did before this migration.
 -- =====================================================================
+
+insert into app_config (key, value)
+values ('site_details_gate_effective_from', to_jsonb('2026-09-21'::date::text))
+on conflict (key) do nothing;
+
+create or replace function site_details_gate_required(p_so uuid) returns boolean
+language sql stable set search_path = public as $$
+  select so.order_date >= coalesce(
+    (select (value #>> '{}')::date from app_config where key = 'site_details_gate_effective_from'),
+    '1900-01-01'::date
+  )
+  from sales_orders so where so.id = p_so
+$$;
 
 create or replace function site_details_complete(p_so uuid) returns boolean
 language sql stable set search_path = public as $$
@@ -79,8 +98,10 @@ begin
   where id = v_so;
 
   -- Auto-advance out of awaiting_clearance once real money lands AND
-  -- the delivery site is known.
-  if v_status in ('advance_paid', 'fully_paid', 'overpaid') and site_details_complete(v_so) then
+  -- the delivery site is known (orders predating the gate skip that
+  -- second condition entirely).
+  if v_status in ('advance_paid', 'fully_paid', 'overpaid')
+     and (not site_details_gate_required(v_so) or site_details_complete(v_so)) then
     update order_ops
       set status = 'to_be_ordered', status_since = now(), updated_at = now()
     where sales_order_id = v_so and status = 'awaiting_clearance';
@@ -103,7 +124,8 @@ begin
     where status = 'awaiting_clearance'
       and sales_order_id in (
         select so.id from sales_orders so
-        where so.customer_id = new.id and site_details_complete(so.id)
+        where so.customer_id = new.id
+          and (not site_details_gate_required(so.id) or site_details_complete(so.id))
       );
   end if;
   return new;
@@ -245,7 +267,7 @@ begin
 
     -- Manual pre-dispatch stages.
     when 'to_be_ordered', 'ordered', 'in_transit', 'at_warehouse', 'ready_to_dispatch' then
-      if p_action = 'to_be_ordered' and not site_details_complete(p_so) then
+      if p_action = 'to_be_ordered' and site_details_gate_required(p_so) and not site_details_complete(p_so) then
         raise exception 'Site details (precise location, floor, service lift) must be filled in before this order can move to Ready to procure'
           using errcode = 'check_violation';
       end if;
@@ -359,6 +381,10 @@ select
   so.customer_id,
   (
     ops.status = 'awaiting_clearance'
+    and so.order_date >= coalesce(
+      (select (ac.value #>> '{}')::date from app_config ac where ac.key = 'site_details_gate_effective_from'),
+      '1900-01-01'::date
+    )
     and (
       so.payment_status in ('advance_paid', 'fully_paid', 'overpaid')
       or coalesce(c.credit_status, 'none') = 'credit_regular'

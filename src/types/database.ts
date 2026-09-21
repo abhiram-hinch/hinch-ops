@@ -200,6 +200,7 @@ export interface BoardRow {
   /** True when this order is fully paid (or credit_regular) but still stuck
    *  at awaiting_clearance because site details aren't complete yet. */
   blocked_on_site_details: boolean;
+  is_store_pickup: boolean;
   procurement_location_id: string | null;
   procurement_location_label: string | null;
 }
@@ -223,6 +224,8 @@ export interface DeliverySiteDetails {
   /** Corrected Maps link, pasted by hand — Zoho's ship_to text is often not accurate enough to search on. */
   maps_url: string | null;
   notes: string | null;
+  /** Customer collects in person from the Hafeezpet store — no delivery site, nothing else required. */
+  is_store_pickup: boolean;
   updated_by: string | null;
   updated_at: string;
 }

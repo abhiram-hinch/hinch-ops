@@ -203,6 +203,13 @@ export interface BoardRow {
   is_store_pickup: boolean;
   procurement_location_id: string | null;
   procurement_location_label: string | null;
+  /** Sales/admin sign-off to dispatch a procure-first order before it's paid in full. */
+  dispatch_before_payment_at: string | null;
+  dispatch_before_payment_note: string | null;
+  dispatch_before_payment_by_name: string | null;
+  /** True when this is a procure-first order that cannot yet be dispatched —
+   *  not paid in full, not credit_regular, and not approved for early dispatch. */
+  dispatch_locked_on_payment: boolean;
 }
 
 export interface ProcurementLocation {

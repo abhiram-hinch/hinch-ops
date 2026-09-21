@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { ChevronRight, FileText, MapPin, PackageCheck, PauseCircle, Store } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronRight,
+  FileText,
+  MapPin,
+  PackageCheck,
+  PauseCircle,
+  Store,
+} from "lucide-react";
 import {
   HOLD_REASONS,
   SETTABLE_STAGES,
@@ -8,8 +17,17 @@ import {
   orderActionLabel,
   showStageStepper,
 } from "@/lib/labels";
-import { canEditDispatch, canSetProcurementLocation } from "@/hooks/useAuth";
-import { useOrderAction, useProcurementLocations, useSetProcurementLocation } from "@/hooks/useBoard";
+import {
+  canAuthorizeDispatchBeforePayment,
+  canEditDispatch,
+  canSetProcurementLocation,
+} from "@/hooks/useAuth";
+import {
+  useOrderAction,
+  useProcurementLocations,
+  useSetDispatchBeforePayment,
+  useSetProcurementLocation,
+} from "@/hooks/useBoard";
 import { money } from "@/lib/format";
 import { Input, Select } from "@/components/Primitives";
 import type { BoardRow, DispatchStatus, OrderAction, Profile } from "@/types/database";
@@ -68,6 +86,118 @@ function StorePickupBanner({ order }: { order: BoardRow }) {
   );
 }
 
+/**
+ * A procure-first order is a hard stop at dispatch, not just at procurement —
+ * warehouse cannot self-override it the way an ordinary order's soft dispatch
+ * gate allows. Only sales/admin can approve sending it out before it's paid
+ * in full. Mirrors enforce_dispatch_gate()'s procure-first branch exactly.
+ */
+function DispatchBeforePaymentAlert({ order, profile }: { order: BoardRow; profile: Profile }) {
+  const setDbp = useSetDispatchBeforePayment(order.id);
+  const [asking, setAsking] = useState(false);
+  const [note, setNote] = useState("");
+  const may = canAuthorizeDispatchBeforePayment(profile.role);
+
+  if (!order.is_procure_first) return null;
+
+  if (order.dispatch_before_payment_at) {
+    return (
+      <p className="mb-2.5 flex flex-wrap items-center gap-1.5 text-[13px] text-muted">
+        <CheckCircle2 size={13} className="shrink-0 text-good" />
+        Approved for early dispatch
+        {order.dispatch_before_payment_by_name ? ` by ${order.dispatch_before_payment_by_name}` : ""}.
+        {may && (
+          <button
+            className="text-micro text-bad underline"
+            disabled={setDbp.isPending}
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Withdraw approval to dispatch this before payment? Warehouse won't be able to send it out again until it's paid in full.",
+                )
+              ) {
+                setDbp.mutate({ on: false });
+              }
+            }}
+          >
+            Undo
+          </button>
+        )}
+      </p>
+    );
+  }
+
+  if (!order.dispatch_locked_on_payment) return null;
+
+  const shortfall = order.total - order.amount_received;
+
+  return (
+    <div className="mb-2.5 rounded-lg bg-badSoft/50 px-3 py-2.5 text-[13px]">
+      <p className="flex items-center gap-1.5 font-semibold text-bad">
+        <AlertTriangle size={14} /> Buy-before-payment order — dispatch is blocked
+      </p>
+      <p className="mt-0.5 text-bad">
+        {money(shortfall)} still due. Warehouse cannot send this out until it&apos;s paid in full
+        {may ? ", or you approve dispatching it early." : " — only sales or admin can approve dispatching it early."}
+      </p>
+      {may && !asking && (
+        <button
+          className="btn-soft btn-sm mt-2 h-7 px-2 text-micro"
+          disabled={setDbp.isPending}
+          onClick={() => setAsking(true)}
+        >
+          Approve early dispatch
+        </button>
+      )}
+      {may && asking && (
+        <div className="mt-2">
+          <Input
+            autoFocus
+            value={note}
+            placeholder="Why approve dispatch before payment? (optional)"
+            className="h-8 w-full text-micro"
+            onChange={(e) => setNote(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setDbp.mutate(
+                  { on: true, note },
+                  { onSuccess: () => { setAsking(false); setNote(""); } },
+                );
+              }
+              if (e.key === "Escape") setAsking(false);
+            }}
+          />
+          <div className="mt-1.5 flex gap-1.5">
+            <button
+              className="btn-primary btn-sm h-7 px-2 text-micro"
+              disabled={setDbp.isPending}
+              onClick={() =>
+                setDbp.mutate(
+                  { on: true, note },
+                  { onSuccess: () => { setAsking(false); setNote(""); } },
+                )
+              }
+            >
+              {setDbp.isPending ? "Saving…" : "Confirm approval"}
+            </button>
+            <button
+              className="btn-ghost btn-sm h-7 px-2 text-micro"
+              onClick={() => setAsking(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+      {setDbp.error && (
+        <p className="mt-1 text-micro text-bad">
+          {setDbp.error instanceof Error ? setDbp.error.message : "Could not save that."}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function DispatchControl({
   order,
   profile,
@@ -96,6 +226,7 @@ export function DispatchControl({
       <div className="px-5 py-2">
         <ProcurementLocationControl order={order} profile={profile} />
         <StorePickupBanner order={order} />
+        <DispatchBeforePaymentAlert order={order} profile={profile} />
         <p className="text-micro text-faint">Your team can view dispatch status but not change it.</p>
       </div>
     );
@@ -113,6 +244,7 @@ export function DispatchControl({
     <div className="px-5 py-3">
       <ProcurementLocationControl order={order} profile={profile} />
       <StorePickupBanner order={order} />
+      <DispatchBeforePaymentAlert order={order} profile={profile} />
       {awaitingClearance && (
         <p className="mb-2.5 rounded bg-warnSoft/50 px-3 py-2 text-[13px] font-medium text-warn">
           Waiting for accounts to confirm the payment — the order moves to procurement on its own

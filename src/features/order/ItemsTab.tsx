@@ -47,6 +47,11 @@ function ItemDetail({
   onSetVendor: (vendorName: string | null) => void;
 }) {
   const [vendorDraft, setVendorDraft] = useState(line.vendor_name ?? "");
+  // Catalog items get their vendor from Zoho's item master data and are
+  // read-only here; only ad-hoc/service lines (no catalog item) can be
+  // hand-tagged, matching what the RLS policy actually allows.
+  const isFromZoho = !!line.zoho_item_id;
+  const canEditThisLine = mayEditVendor && !isFromZoho;
   const row = (label: string, value: React.ReactNode) => (
     <div className="flex justify-between gap-4 py-1">
       <span className="shrink-0 text-micro text-faint">{label}</span>
@@ -72,7 +77,7 @@ function ItemDetail({
       {row("Rate", <span className="num">{money(line.rate)}</span>)}
       {row("Amount", <span className="num font-medium">{money(line.amount)}</span>)}
 
-      {mayEditVendor ? (
+      {canEditThisLine ? (
         <div className="mt-2 flex items-center gap-2">
           <span className="shrink-0 text-micro text-faint">Vendor</span>
           <Input
@@ -87,7 +92,14 @@ function ItemDetail({
           />
         </div>
       ) : (
-        line.vendor_name && row("Vendor", line.vendor_name)
+        line.vendor_name &&
+        row(
+          "Vendor",
+          <span>
+            {line.vendor_name}
+            {isFromZoho && <span className="ml-1.5 text-micro text-faint">· from Zoho</span>}
+          </span>,
+        )
       )}
 
       <p className="mb-1 mt-3 text-micro font-medium text-muted">Ship to</p>

@@ -243,7 +243,7 @@ export function useOrderLines(orderId: string | null) {
       const { data, error } = await supabase
         .from("sales_order_lines")
         .select(
-          "id, item_name, item_sku, description, hsn_or_sac, unit, line_item_kind, quantity, qty_dispatched, rate, amount, line_order, vendor_name",
+          "id, item_name, item_sku, description, hsn_or_sac, unit, line_item_kind, quantity, qty_dispatched, rate, amount, line_order, vendor_name, zoho_item_id",
         )
         .eq("sales_order_id", orderId!)
         .order("line_order");

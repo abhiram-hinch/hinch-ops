@@ -122,6 +122,18 @@ export async function fetchSalesOrder(salesorderId: string): Promise<ZohoSalesOr
 }
 
 /**
+ * Fetch a single catalog item — used to resolve its preferred vendor
+ * (Purchase Information -> Preferred Vendor in Zoho Books). This is a
+ * different API surface than the sales order itself; Zoho has no vendor
+ * concept on an SO line, only on the item it references.
+ */
+export async function fetchItem(itemId: string): Promise<ZohoItem> {
+  const body = await zohoGet<{ item: ZohoItem }>({ path: `/items/${itemId}` });
+  if (!body?.item) throw new Error(`No item in response for ${itemId}`);
+  return body.item;
+}
+
+/**
  * Fetch the sales order as a PDF. Same endpoint, `accept=pdf`. Returns the raw
  * bytes; the caller stores them in the so-pdfs bucket.
  */
@@ -205,6 +217,7 @@ export function safeEqual(a: string, b: string): boolean {
 
 export interface ZohoLineItem {
   line_item_id?: string;
+  item_id?: string; // "" for ad-hoc/service lines with no catalog item
   name?: string;
   sku?: string;
   description?: string;
@@ -215,6 +228,15 @@ export interface ZohoLineItem {
   quantity?: number;
   rate?: number;
   item_total?: number;
+}
+
+/** From GET /items/{id} — pinned from a live response from our own org. */
+export interface ZohoItem {
+  item_id: string;
+  name?: string;
+  vendor_id?: string;
+  vendor_name?: string;
+  [key: string]: unknown;
 }
 
 export interface ZohoAddress {

@@ -1,5 +1,8 @@
 import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2";
-import type { ZohoSalesOrder } from "./zoho.ts";
+import { fetchItem, type ZohoSalesOrder } from "./zoho.ts";
+
+/** Cached item vendor lookups are refreshed after this long. */
+const ITEM_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 export function serviceClient(): SupabaseClient {
   return createClient(
@@ -166,6 +169,56 @@ export async function upsertSalesOrder(
   return { id: order.id, matchedOn };
 }
 
+/**
+ * Resolve each item_id's vendor via a write-through cache — most items
+ * repeat across many orders, so this costs one Zoho call per distinct
+ * item ever seen (or every ITEM_CACHE_TTL_MS, in case a preferred vendor
+ * changes), not one per line or per order.
+ */
+async function resolveVendorNames(
+  db: SupabaseClient,
+  itemIds: string[],
+): Promise<Map<string, string | null>> {
+  const result = new Map<string, string | null>();
+  if (!itemIds.length) return result;
+
+  const { data: cached, error } = await db
+    .from("zoho_items")
+    .select("zoho_item_id, vendor_name, last_synced_at")
+    .in("zoho_item_id", itemIds);
+  if (error) throw new Error(`Read zoho_items cache: ${error.message}`);
+
+  const fresh = new Map((cached ?? []).map((r) => [r.zoho_item_id as string, r]));
+  const stale = new Date(Date.now() - ITEM_CACHE_TTL_MS).toISOString();
+
+  for (const itemId of itemIds) {
+    const row = fresh.get(itemId);
+    if (row && row.last_synced_at > stale) {
+      result.set(itemId, row.vendor_name ?? null);
+      continue;
+    }
+    try {
+      const item = await fetchItem(itemId);
+      const vendorName = item.vendor_name?.trim() || null;
+      result.set(itemId, vendorName);
+      const { error: upsertErr } = await db.from("zoho_items").upsert({
+        zoho_item_id: itemId,
+        name: item.name ?? null,
+        vendor_id: item.vendor_id || null,
+        vendor_name: vendorName,
+        last_synced_at: new Date().toISOString(),
+      });
+      if (upsertErr) console.error(`Cache item ${itemId}: ${upsertErr.message}`);
+    } catch (e) {
+      // A lookup failure shouldn't fail the whole SO sync — fall back to
+      // whatever's cached (possibly stale), or leave it unresolved.
+      console.error(`Fetch item ${itemId} for vendor lookup: ${e}`);
+      result.set(itemId, row?.vendor_name ?? null);
+    }
+  }
+  return result;
+}
+
 async function upsertLines(
   db: SupabaseClient,
   salesOrderId: string,
@@ -173,15 +226,34 @@ async function upsertLines(
 ) {
   if (!lines.length) return;
 
+  const itemIds = [...new Set(lines.map((li) => li.item_id?.trim()).filter((id): id is string => !!id))];
+  const vendorByItem = await resolveVendorNames(db, itemIds);
+
+  // Every row in a single bulk upsert must carry the same columns — a key
+  // present on some rows and absent on others resolves to NULL for the
+  // rows missing it, which would wipe out warehouse's manual vendor_name
+  // entries on ad-hoc lines every time the order re-syncs. So: fetch
+  // what's there today and carry it forward unchanged for ad-hoc lines,
+  // rather than omitting the column.
+  const { data: existing, error: existingErr } = await db
+    .from("sales_order_lines")
+    .select("zoho_line_item_id, vendor_name")
+    .eq("sales_order_id", salesOrderId);
+  if (existingErr) throw new Error(`Read existing lines for ${salesOrderId}: ${existingErr.message}`);
+  const existingVendorByLine = new Map((existing ?? []).map((r) => [r.zoho_line_item_id as string, r.vendor_name as string | null]));
+
   const rows = lines.map((li, i) => {
     // Ad-hoc service lines (SAC) arrive with name = "" and the label in
     // description. Fall back so they don't render blank; keep description
     // separate only when there's a real name.
     const name = li.name?.trim() || null;
     const desc = li.description?.trim() || null;
+    const itemId = li.item_id?.trim() || null;
+    const zohoLineItemId = li.line_item_id ?? `idx-${i}`;
     return {
       sales_order_id: salesOrderId,
-      zoho_line_item_id: li.line_item_id ?? `idx-${i}`,
+      zoho_line_item_id: zohoLineItemId,
+      zoho_item_id: itemId,
       item_name: name ?? desc ?? "(unnamed line)",
       item_sku: li.sku?.trim() || null,
       description: name ? desc : null,
@@ -192,6 +264,9 @@ async function upsertLines(
       rate: num(li.rate),
       amount: num(li.item_total),
       line_order: i,
+      // Catalog lines: Zoho's vendor wins, every sync. Ad-hoc lines
+      // (itemId null) keep whatever was already there.
+      vendor_name: itemId ? (vendorByItem.get(itemId) ?? null) : (existingVendorByLine.get(zohoLineItemId) ?? null),
     };
   });
 

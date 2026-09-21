@@ -4,6 +4,7 @@ import {
   CircleDashed,
   Clock,
   IndianRupee,
+  MapPinOff,
   PackageCheck,
   PauseCircle,
   ShoppingCart,
@@ -76,17 +77,22 @@ const dispatchIcon: Record<DispatchStatus, LucideIcon> = {
 export function StatusBadge({
   status,
   size = "md",
+  blockedOnSiteDetails = false,
 }: {
   status: DispatchStatus;
   size?: "sm" | "md";
+  /** awaiting_clearance can mean "payment" or "site details" — say which. */
+  blockedOnSiteDetails?: boolean;
 }) {
-  const Icon = dispatchIcon[status];
+  const bySiteDetails = status === "awaiting_clearance" && blockedOnSiteDetails;
+  const Icon = bySiteDetails ? MapPinOff : dispatchIcon[status];
+  const label = bySiteDetails ? "Awaiting site details" : dispatchLabel[status];
   return (
     <span
       className={`chip ${toneChip[dispatchTone[status]]} ${size === "sm" ? "px-2 py-0.5 text-micro" : ""}`}
     >
       <Icon size={size === "sm" ? 12 : 14} strokeWidth={2.25} />
-      {dispatchLabel[status]}
+      {label}
     </span>
   );
 }

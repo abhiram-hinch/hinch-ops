@@ -146,7 +146,11 @@ export function OrderPanel({
               )}
             </div>
             <div className="shrink-0 text-right">
-              <StatusBadge status={order.dispatch_status} size="sm" />
+              <StatusBadge
+                status={order.dispatch_status}
+                size="sm"
+                blockedOnSiteDetails={order.blocked_on_site_details}
+              />
               <p className="num mt-1.5 text-micro text-faint">{order.days_in_status}d here</p>
             </div>
           </div>

@@ -1,11 +1,55 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, MapPin, Store } from "lucide-react";
 import { BUILDING_TYPES, buildingTypeLabel } from "@/lib/labels";
 import { mapsUrl } from "@/lib/format";
+import { loadGoogleMaps } from "@/lib/googleMaps";
 import { canEditSiteDetails } from "@/hooks/useAuth";
 import { useSaveSiteDetails, useSiteDetails } from "@/hooks/useBoard";
 import { Field, Input, Select, Skeleton } from "@/components/Primitives";
 import type { BoardRow, BuildingType, Profile } from "@/types/database";
+
+/**
+ * Attaches Google Places Autocomplete to a plain text input — picking a
+ * suggestion fills in a real Maps link instead of sales having to find the
+ * spot themselves and paste a share link. Typing or pasting a link directly
+ * still works exactly as before; this is additive, not a replacement.
+ *
+ * A callback ref rather than useRef+useEffect: this input can legitimately
+ * mount and unmount more than once (the pickup-mode toggle swaps it in and
+ * out of the tree), and a plain useEffect keyed on a stable ref object never
+ * re-fires when only the DOM node underneath it changes — it can end up
+ * racing loadGoogleMaps() against a node that's already been replaced. A
+ * callback ref fires exactly on every real attach/detach, so it can't drift.
+ */
+function useAddressAutocomplete(onSelect: (mapsUrl: string) => void) {
+  const [error, setError] = useState<string | null>(null);
+  const onSelectRef = useRef(onSelect);
+  onSelectRef.current = onSelect;
+  const listenerRef = useRef<google.maps.MapsEventListener | null>(null);
+
+  const ref = useCallback((node: HTMLInputElement | null) => {
+    listenerRef.current?.remove();
+    listenerRef.current = null;
+    if (!node) return;
+
+    loadGoogleMaps()
+      .then((g) => {
+        const autocomplete = new g.maps.places.Autocomplete(node, {
+          fields: ["formatted_address", "place_id", "url"],
+        });
+        listenerRef.current = autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          const url =
+            place.url ??
+            (place.place_id ? `https://www.google.com/maps/place/?q=place_id:${place.place_id}` : null);
+          if (url) onSelectRef.current(url);
+        });
+      })
+      .catch((e) => setError(e instanceof Error ? e.message : "Could not load Google Maps"));
+  }, []);
+
+  return { ref, error };
+}
 
 const LIFT_OPTIONS: { value: string; label: string }[] = [
   { value: "", label: "Not recorded" },
@@ -62,6 +106,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
   const [mapsOverride, setMapsOverride] = useState("");
   const [notes, setNotes] = useState("");
   const [justSaved, setJustSaved] = useState(false);
+  const { ref: mapsInputRef, error: gmapsError } = useAddressAutocomplete(setMapsOverride);
 
   useEffect(() => {
     if (!data) return;
@@ -237,15 +282,23 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
               <div className="mt-3">
                 <p className="mb-1 text-[13px] font-medium text-muted">Precise location *</p>
                 <Input
+                  ref={mapsInputRef}
                   value={mapsOverride}
                   onChange={(e) => setMapsOverride(e.target.value)}
-                  placeholder="Paste a Google Maps share link"
+                  placeholder="Search for the address, or paste a Google Maps link"
                   className="w-full"
                 />
-                <p className="mt-1 text-micro text-faint">
-                  Find the actual spot in Google Maps, share it, and paste the link here — it takes over from the
-                  auto-guessed address.
-                </p>
+                {gmapsError ? (
+                  <p className="mt-1 text-micro text-faint">
+                    Address search is unavailable right now — find the spot in Google Maps, share it, and
+                    paste the link here instead.
+                  </p>
+                ) : (
+                  <p className="mt-1 text-micro text-faint">
+                    Pick the real address from the suggestions, or paste a Google Maps share link directly —
+                    either takes over from the auto-guessed address.
+                  </p>
+                )}
               </div>
             </>
           )}

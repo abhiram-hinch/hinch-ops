@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { AlertTriangle, ArrowUpDown, MapPin, MapPinOff, PackagePlus } from "lucide-react";
+import { AlertTriangle, ArrowUpDown, MapPin, MapPinOff, PackagePlus, Store } from "lucide-react";
 import { PaymentBar } from "@/components/Primitives";
 import { StatusBadge, toneChip, toneText } from "@/lib/statusUi";
 import { money, shortDate } from "@/lib/format";
@@ -129,6 +129,7 @@ export function OrderTable({
               r.is_procure_first ||
               r.has_service_lift === false ||
               r.blocked_on_site_details ||
+              r.is_store_pickup ||
               r.procurement_location_label) && (
               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                 {r.customer_credit_status !== "none" && (
@@ -156,6 +157,11 @@ export function OrderTable({
                 {r.blocked_on_site_details && (
                   <span className="chip bg-warnSoft px-2 py-0.5 text-micro text-warn">
                     <MapPinOff size={11} /> Site details needed
+                  </span>
+                )}
+                {r.is_store_pickup && (
+                  <span className={`chip px-2 py-0.5 text-micro ${toneChip.accent}`}>
+                    <Store size={11} /> Store pickup
                   </span>
                 )}
                 {r.procurement_location_label && (

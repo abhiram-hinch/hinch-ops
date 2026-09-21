@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronRight, FileText, MapPin, PackageCheck, PauseCircle } from "lucide-react";
+import { ChevronRight, FileText, MapPin, PackageCheck, PauseCircle, Store } from "lucide-react";
 import {
   HOLD_REASONS,
   SETTABLE_STAGES,
@@ -58,6 +58,16 @@ function ProcurementLocationControl({ order, profile }: { order: BoardRow; profi
   );
 }
 
+/** Purely informational — the toggle itself lives on the Site tab, sales-owned. */
+function StorePickupBanner({ order }: { order: BoardRow }) {
+  if (!order.is_store_pickup) return null;
+  return (
+    <p className="mb-2.5 flex items-center gap-1.5 text-[13px] font-medium text-brandStrong">
+      <Store size={13} /> Store pickup — Hinch Store, Hafeezpet. No delivery address needed.
+    </p>
+  );
+}
+
 export function DispatchControl({
   order,
   profile,
@@ -85,6 +95,7 @@ export function DispatchControl({
     return (
       <div className="px-5 py-2">
         <ProcurementLocationControl order={order} profile={profile} />
+        <StorePickupBanner order={order} />
         <p className="text-micro text-faint">Your team can view dispatch status but not change it.</p>
       </div>
     );
@@ -101,6 +112,7 @@ export function DispatchControl({
   return (
     <div className="px-5 py-3">
       <ProcurementLocationControl order={order} profile={profile} />
+      <StorePickupBanner order={order} />
       {awaitingClearance && (
         <p className="mb-2.5 rounded bg-warnSoft/50 px-3 py-2 text-[13px] font-medium text-warn">
           Waiting for accounts to confirm the payment — the order moves to procurement on its own

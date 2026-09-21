@@ -720,6 +720,7 @@ export function useSaveSiteDetails(orderId: string) {
       has_service_lift: boolean | null;
       maps_url: string | null;
       notes: string | null;
+      is_store_pickup: boolean;
       userId: string;
     }) => {
       const { userId, ...fields } = input;

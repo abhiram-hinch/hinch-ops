@@ -227,9 +227,129 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
         </div>
       )}
 
+      {/* Payments received — the current picture first, before the form to add more */}
+      <section>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-raised p-2.5">
+            <p className="text-micro text-muted">Received</p>
+            <p className="num text-base font-bold text-good">{money(order.amount_received)}</p>
+          </div>
+          <div className="rounded-lg bg-raised p-2.5">
+            <p className="text-micro text-muted">Balance due</p>
+            <p className={`num text-base font-bold ${balance > 0.01 ? "text-warn" : "text-ink"}`}>
+              {money(balance)}
+            </p>
+          </div>
+        </div>
+
+        <h3 className="mb-2 mt-3.5 text-[13px] font-semibold text-ink">
+          Payments received <span className="text-faint">({data?.length ?? 0})</span>
+        </h3>
+
+        {isLoading && <Skeleton rows={3} />}
+        {error && <ErrorNote error={error} retry={() => refetch()} />}
+
+        {data && data.length === 0 && (
+          <p className="rounded-lg bg-raised px-3 py-4 text-center text-[13px] text-muted">
+            No payments yet.{mayEdit ? " Record the first one below." : ""}
+          </p>
+        )}
+
+        {data && data.length > 0 && (
+          <ul className="divide-y divide-line border-t border-line">
+            {data.map((p) => (
+              <li key={p.id} className="flex items-start justify-between gap-3 py-2.5">
+                <div className={p.voided ? "opacity-45" : ""}>
+                  <p className="num flex items-center gap-2 text-sm font-medium">
+                    {moneyExact(p.amount)}
+                    {!p.voided && <ClearanceChip status={p.clearance_status} />}
+                    {p.voided && <span className="font-sans text-micro">voided</span>}
+                  </p>
+                  <p className="text-micro text-faint">
+                    {methodLabel(p.payment_method)}
+                    {p.reference_no ? ` · ${p.reference_no}` : ""}
+                    {p.bank_accounts?.label ? ` · into ${p.bank_accounts.label}` : ""}
+                    {p.profiles?.full_name ? ` · by ${p.profiles.full_name}` : ""}
+                  </p>
+                  {p.voided && p.voided_reason && (
+                    <p className="text-micro text-faint">Reason: {p.voided_reason}</p>
+                  )}
+                  {p.note && <p className="mt-0.5 text-micro text-ink">“{p.note}”</p>}
+                  <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                    {(p.payment_receipts ?? []).map((r, i) => (
+                      <ReceiptLink key={r.id} receipt={r} index={i} />
+                    ))}
+                    {!p.voided && (p.payment_receipts?.length ?? 0) === 0 && (
+                      <span className="text-micro text-faint">No proof attached</span>
+                    )}
+                    {mayEdit && !p.voided && (
+                      <AddProofButton orderId={order.id} paymentId={p.id} userId={profile.id} />
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex shrink-0 flex-col items-end gap-1">
+                  {mayClear && !p.voided && p.clearance_status === "pending" && (
+                    <div className="flex gap-1">
+                      <button
+                        className="btn-soft btn-sm h-7 gap-1 px-2 text-micro"
+                        disabled={setClearance.isPending}
+                        onClick={() =>
+                          setClearance.mutate({
+                            id: p.id,
+                            clearance_status: "cleared",
+                            userId: profile.id,
+                          })
+                        }
+                      >
+                        <CheckCircle2 size={12} /> Confirm
+                      </button>
+                      <button
+                        className="btn-ghost btn-sm h-7 gap-1 px-2 text-micro text-bad"
+                        disabled={setClearance.isPending}
+                        onClick={() =>
+                          setClearance.mutate({
+                            id: p.id,
+                            clearance_status: "bounced",
+                            userId: profile.id,
+                          })
+                        }
+                      >
+                        <XCircle size={12} /> Bounce
+                      </button>
+                    </div>
+                  )}
+                  {mayEdit && !p.voided && (
+                    <button
+                      className="btn-ghost btn-sm h-7 px-2 text-micro"
+                      onClick={() => {
+                        const reason = window.prompt("Why is this being voided?");
+                        if (reason) voidPayment.mutate({ id: p.id, reason, userId: profile.id });
+                      }}
+                    >
+                      Void
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {setClearance.error && (
+          <p className="mt-2 text-sm text-bad">
+            {setClearance.error instanceof Error
+              ? setClearance.error.message
+              : "Could not update that payment."}
+          </p>
+        )}
+      </section>
+
       {mayEdit && (
-        <div className="card p-3.5">
-          <div className="grid grid-cols-2 gap-x-2 gap-y-3">
+        <section className="border-t border-line pt-4">
+          <h3 className="mb-3 text-[13px] font-semibold text-ink">Record a payment</h3>
+          <div className="card p-3.5">
+            <div className="grid grid-cols-2 gap-x-2 gap-y-3">
             <Field label="Amount received">
               <Input
                 type="number"
@@ -465,105 +585,8 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
               {record.error instanceof Error ? record.error.message : "Could not record that."}
             </p>
           )}
-        </div>
-      )}
-
-      {isLoading && <Skeleton rows={3} />}
-      {error && <ErrorNote error={error} retry={() => refetch()} />}
-
-      {data && data.length === 0 && (
-        <p className="rounded-lg bg-raised px-3 py-4 text-center text-[13px] text-muted">
-          No payments yet.{mayEdit ? " Record the first one above." : ""}
-        </p>
-      )}
-
-      {data && data.length > 0 && (
-        <ul className="divide-y divide-line border-t border-line">
-          {data.map((p) => (
-            <li key={p.id} className="flex items-start justify-between gap-3 py-2.5">
-              <div className={p.voided ? "opacity-45" : ""}>
-                <p className="num flex items-center gap-2 text-sm font-medium">
-                  {moneyExact(p.amount)}
-                  {!p.voided && <ClearanceChip status={p.clearance_status} />}
-                  {p.voided && <span className="font-sans text-micro">voided</span>}
-                </p>
-                <p className="text-micro text-faint">
-                  {methodLabel(p.payment_method)}
-                  {p.reference_no ? ` · ${p.reference_no}` : ""}
-                  {p.bank_accounts?.label ? ` · into ${p.bank_accounts.label}` : ""}
-                  {p.profiles?.full_name ? ` · by ${p.profiles.full_name}` : ""}
-                </p>
-                {p.voided && p.voided_reason && (
-                  <p className="text-micro text-faint">Reason: {p.voided_reason}</p>
-                )}
-                {p.note && <p className="mt-0.5 text-micro text-ink">“{p.note}”</p>}
-                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                  {(p.payment_receipts ?? []).map((r, i) => (
-                    <ReceiptLink key={r.id} receipt={r} index={i} />
-                  ))}
-                  {!p.voided && (p.payment_receipts?.length ?? 0) === 0 && (
-                    <span className="text-micro text-faint">No proof attached</span>
-                  )}
-                  {mayEdit && !p.voided && (
-                    <AddProofButton orderId={order.id} paymentId={p.id} userId={profile.id} />
-                  )}
-                </div>
-              </div>
-
-              <div className="flex shrink-0 flex-col items-end gap-1">
-                {mayClear && !p.voided && p.clearance_status === "pending" && (
-                  <div className="flex gap-1">
-                    <button
-                      className="btn-soft btn-sm h-7 gap-1 px-2 text-micro"
-                      disabled={setClearance.isPending}
-                      onClick={() =>
-                        setClearance.mutate({
-                          id: p.id,
-                          clearance_status: "cleared",
-                          userId: profile.id,
-                        })
-                      }
-                    >
-                      <CheckCircle2 size={12} /> Confirm
-                    </button>
-                    <button
-                      className="btn-ghost btn-sm h-7 gap-1 px-2 text-micro text-bad"
-                      disabled={setClearance.isPending}
-                      onClick={() =>
-                        setClearance.mutate({
-                          id: p.id,
-                          clearance_status: "bounced",
-                          userId: profile.id,
-                        })
-                      }
-                    >
-                      <XCircle size={12} /> Bounce
-                    </button>
-                  </div>
-                )}
-                {mayEdit && !p.voided && (
-                  <button
-                    className="btn-ghost btn-sm h-7 px-2 text-micro"
-                    onClick={() => {
-                      const reason = window.prompt("Why is this being voided?");
-                      if (reason) voidPayment.mutate({ id: p.id, reason, userId: profile.id });
-                    }}
-                  >
-                    Void
-                  </button>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {setClearance.error && (
-        <p className="text-sm text-bad">
-          {setClearance.error instanceof Error
-            ? setClearance.error.message
-            : "Could not update that payment."}
-        </p>
+          </div>
+        </section>
       )}
 
       <div className="border-t border-line pt-4">

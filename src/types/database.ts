@@ -303,6 +303,7 @@ export interface OrderLine {
   amount: number;
   line_order: number | null;
   vendor_name: string | null;
+  zoho_item_id: string | null;
 }
 
 export interface PaymentReceipt {

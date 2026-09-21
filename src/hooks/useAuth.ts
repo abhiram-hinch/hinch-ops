@@ -79,6 +79,14 @@ export const canAuthorizeProcureFirst = (role?: string) =>
   role === "sales" || role === "accounts" || role === "admin";
 
 /**
+ * Approving dispatch of a procure-first order before it's paid in full is a
+ * narrower call than authorising the procurement spend itself — deliberately
+ * not accounts here. Mirrors can_authorize_dispatch_before_payment() in Postgres.
+ */
+export const canAuthorizeDispatchBeforePayment = (role?: string) =>
+  role === "sales" || role === "admin";
+
+/**
  * Site details gate procurement (see site_details_complete() in Postgres),
  * so only the team that's accountable for filling them in — sales — can
  * edit them. Warehouse (and everyone else) reads them. Mirrors the

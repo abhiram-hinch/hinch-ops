@@ -946,6 +946,22 @@ export function useSetProcureFirst(orderId: string) {
   });
 }
 
+/** Sales/admin sign-off to dispatch a procure-first order before it's paid in full. */
+export function useSetDispatchBeforePayment(orderId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ on, note }: { on: boolean; note?: string }) => {
+      const { error } = await supabase.rpc("set_dispatch_before_payment", {
+        p_so: orderId,
+        p_on: on,
+        p_note: note?.trim() ? note.trim() : null,
+      });
+      if (error) throw new Error(error.message);
+    },
+    onSuccess: () => invalidateOrder(qc, orderId),
+  });
+}
+
 /** Manual "Sync now" -- invokes the poll function with the caller's JWT. */
 export function useSyncNow() {
   const qc = useQueryClient();

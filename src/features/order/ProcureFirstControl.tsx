@@ -61,7 +61,7 @@ export function ProcureFirstControl({ order, role }: { order: BoardRow; role: st
             — approved
             {order.procure_first_by_name ? ` by ${order.procure_first_by_name}` : ""}
             {order.procure_first_at ? ` on ${shortDate(order.procure_first_at)}` : ""}. Still cannot
-            be sent out until paid in full.
+            be sent out until paid in full, unless sales or admin approves early dispatch.
           </span>
           {may && (
             <button

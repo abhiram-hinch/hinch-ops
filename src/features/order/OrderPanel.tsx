@@ -94,7 +94,7 @@ export function OrderPanel({
         aria-hidden
       />
       <aside
-        className="fixed right-0 top-0 z-40 flex h-screen w-full max-w-[540px] flex-col bg-canvas shadow-pop"
+        className="fixed right-0 top-0 z-40 flex h-screen w-full max-w-[600px] flex-col bg-canvas shadow-pop"
         aria-label={`Order ${order.so_number ?? ""}`}
       >
         {/* Header */}
@@ -137,7 +137,7 @@ export function OrderPanel({
                   width={104}
                   showPct={false}
                 />
-                <span className={`text-[13px] font-medium ${toneText[paymentViewTone[pv]]}`}>
+                <span className={`text-sm font-medium ${toneText[paymentViewTone[pv]]}`}>
                   {paymentViewLabel[pv]}
                 </span>
               </div>
@@ -191,7 +191,7 @@ export function OrderPanel({
               role="tab"
               aria-selected={tab === key}
               onClick={() => setTab(key)}
-              className={`-mb-px border-b-2 px-3 py-2.5 text-[13px] font-medium transition-colors ${
+              className={`-mb-px border-b-2 px-3 py-2.5 text-sm font-medium transition-colors ${
                 tab === key
                   ? "border-brand text-brand"
                   : "border-transparent text-muted hover:text-ink"
@@ -325,7 +325,7 @@ function DetailsTab({
       {/* PDF */}
       <section className="card p-3">
         <div className="flex items-center justify-between">
-          <span className="flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+          <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
             <FileText size={14} className="text-muted" /> Sales order PDF
           </span>
           {pdfUrl ? (
@@ -347,7 +347,7 @@ function DetailsTab({
 
       {/* Ship to */}
       <section>
-        <h3 className="mb-1 text-[13px] font-semibold text-ink">Delivery address</h3>
+        <h3 className="mb-1 text-sm font-semibold text-ink">Delivery address</h3>
         {ship ? (
           <address className="text-sm not-italic leading-relaxed text-ink">
             {ship.attention && <span className="block font-medium">{ship.attention}</span>}
@@ -383,7 +383,7 @@ function DetailsTab({
 
       {(n("sub_total") !== null || n("tax_total") !== null) && (
         <section className="border-t border-line pt-2">
-          <h3 className="mb-1 text-[13px] font-semibold text-ink">Amount breakdown</h3>
+          <h3 className="mb-1 text-sm font-semibold text-ink">Amount breakdown</h3>
           {n("sub_total") !== null && (
             <KV label="Sub-total">
               <span className="num">{money(n("sub_total")!)}</span>
@@ -412,14 +412,14 @@ function DetailsTab({
 
       {rec?.notes && (
         <section className="border-t border-line pt-2">
-          <h3 className="mb-1 text-[13px] font-semibold text-ink">Notes</h3>
+          <h3 className="mb-1 text-sm font-semibold text-ink">Notes</h3>
           <p className="whitespace-pre-line text-sm text-ink">{rec.notes}</p>
         </section>
       )}
 
       {s("terms") && (
         <details className="border-t border-line pt-2">
-          <summary className="cursor-pointer text-[13px] font-semibold text-ink">
+          <summary className="cursor-pointer text-sm font-semibold text-ink">
             Terms &amp; conditions
           </summary>
           <p className="mt-1 whitespace-pre-line text-micro text-muted">{s("terms")}</p>
@@ -466,7 +466,7 @@ function ActivityLog({ orderId }: { orderId: string }) {
 
   return (
     <details className="border-t border-line pt-2" open>
-      <summary className="cursor-pointer text-[13px] font-semibold text-ink">History</summary>
+      <summary className="cursor-pointer text-sm font-semibold text-ink">History</summary>
       <div className="mt-2">
         {isLoading && <Skeleton rows={3} />}
         {data && data.length === 0 && (
@@ -477,7 +477,7 @@ function ActivityLog({ orderId }: { orderId: string }) {
             {data.map((a) => (
               <li key={a.id} className="border-l-2 border-line pl-3">
                 <p
-                  className={`text-[13px] ${
+                  className={`text-sm ${
                     a.action === "dispatch_gate_override" ? "font-semibold text-bad" : "text-ink"
                   }`}
                 >

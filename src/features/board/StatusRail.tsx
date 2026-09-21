@@ -41,7 +41,7 @@ export function StatusRail({
     <button
       onClick={onClick}
       aria-pressed={on}
-      className={`inline-flex shrink-0 items-center gap-1.5 rounded-pill px-3 py-1.5 text-[13px] font-medium transition-colors ${
+      className={`inline-flex shrink-0 items-center gap-1.5 rounded-pill px-3 py-1.5 text-sm font-medium transition-colors ${
         on
           ? danger
             ? "bg-bad text-white"
@@ -88,7 +88,7 @@ export function StatusRail({
         );
       })}
 
-      <span className="ml-auto hidden shrink-0 items-center whitespace-nowrap pl-3 text-[13px] text-muted sm:flex">
+      <span className="ml-auto hidden shrink-0 items-center whitespace-nowrap pl-3 text-sm text-muted sm:flex">
         {moneyShort(all.value)}
       </span>
     </div>

@@ -28,7 +28,7 @@ export function AccountMenu({ profile, email }: { profile: Profile; email: strin
         <span className="grid h-6 w-6 place-items-center rounded-full bg-brandSoft text-micro font-bold text-brandStrong">
           {initial}
         </span>
-        <span className="hidden max-w-[140px] truncate text-[13px] font-semibold text-ink sm:inline">
+        <span className="hidden max-w-[140px] truncate text-sm font-semibold text-ink sm:inline">
           {profile.full_name}
         </span>
       </button>
@@ -106,7 +106,7 @@ function AccountModal({
         </div>
 
         <div className="mt-5 border-t border-line pt-4">
-          <p className="mb-2.5 flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+          <p className="mb-2.5 flex items-center gap-1.5 text-sm font-semibold text-ink">
             <KeyRound size={14} /> Change password
           </p>
           <div className="space-y-2.5">

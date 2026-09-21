@@ -49,20 +49,20 @@ function ProcurementLocationControl({ order, profile }: { order: BoardRow; profi
 
   if (!mayEdit) {
     return order.procurement_location_label ? (
-      <p className="mb-2.5 flex items-center gap-1.5 text-[13px] font-medium text-ink">
+      <p className="mb-3 flex items-center gap-1.5 text-sm font-medium text-ink">
         <MapPin size={13} className="text-muted" /> Procuring from {order.procurement_location_label}
       </p>
     ) : null;
   }
 
   return (
-    <div className="mb-2.5 flex items-center gap-2">
+    <div className="mb-3 flex items-center gap-2">
       <MapPin size={13} className="shrink-0 text-muted" />
       <Select
         value={order.procurement_location_id ?? ""}
         onChange={(e) => setLocation.mutate(e.target.value || null)}
         disabled={setLocation.isPending}
-        className="h-8 flex-1 text-[13px]"
+        className="h-8 flex-1 text-sm"
         aria-label="Procurement location"
       >
         <option value="">Procure from — not set</option>
@@ -80,7 +80,7 @@ function ProcurementLocationControl({ order, profile }: { order: BoardRow; profi
 function StorePickupBanner({ order }: { order: BoardRow }) {
   if (!order.is_store_pickup) return null;
   return (
-    <p className="mb-2.5 flex items-center gap-1.5 text-[13px] font-medium text-brandStrong">
+    <p className="mb-3 flex items-center gap-1.5 text-sm font-medium text-brandStrong">
       <Store size={13} /> Store pickup — Hinch Store, Hafeezpet. No delivery address needed.
     </p>
   );
@@ -102,7 +102,7 @@ function DispatchBeforePaymentAlert({ order, profile }: { order: BoardRow; profi
 
   if (order.dispatch_before_payment_at) {
     return (
-      <p className="mb-2.5 flex flex-wrap items-center gap-1.5 text-[13px] text-muted">
+      <p className="mb-3 flex flex-wrap items-center gap-1.5 text-sm text-muted">
         <CheckCircle2 size={13} className="shrink-0 text-good" />
         Approved for early dispatch
         {order.dispatch_before_payment_by_name ? ` by ${order.dispatch_before_payment_by_name}` : ""}.
@@ -132,7 +132,7 @@ function DispatchBeforePaymentAlert({ order, profile }: { order: BoardRow; profi
   const shortfall = order.total - order.amount_received;
 
   return (
-    <div className="mb-2.5 rounded-lg bg-badSoft/50 px-3 py-2.5 text-[13px]">
+    <div className="mb-3 rounded-lg bg-badSoft/50 px-3 py-2.5 text-sm">
       <p className="flex items-center gap-1.5 font-semibold text-bad">
         <AlertTriangle size={14} /> Buy-before-payment order — dispatch is blocked
       </p>
@@ -223,7 +223,7 @@ export function DispatchControl({
 
   if (!mayEdit) {
     return (
-      <div className="px-5 py-2">
+      <div className="px-5 py-4">
         <ProcurementLocationControl order={order} profile={profile} />
         <StorePickupBanner order={order} />
         <DispatchBeforePaymentAlert order={order} profile={profile} />
@@ -241,30 +241,30 @@ export function DispatchControl({
     creditHold || (!creditRegular && order.payment_status !== "fully_paid" && shortfall > 0.01);
 
   return (
-    <div className="px-5 py-3">
+    <div className="px-5 py-4">
       <ProcurementLocationControl order={order} profile={profile} />
       <StorePickupBanner order={order} />
       <DispatchBeforePaymentAlert order={order} profile={profile} />
       {awaitingClearance && (
-        <p className="mb-2.5 rounded bg-warnSoft/50 px-3 py-2 text-[13px] font-medium text-warn">
+        <p className="mb-3 rounded bg-warnSoft/50 px-3 py-2 text-sm font-medium text-warn">
           Waiting for accounts to confirm the payment — the order moves to procurement on its own
           once that&apos;s done.
         </p>
       )}
       {!awaitingClearance && creditHold && (
-        <p className="mb-2.5 rounded bg-badSoft/50 px-3 py-2 text-[13px] font-medium text-bad">
+        <p className="mb-3 rounded bg-badSoft/50 px-3 py-2 text-sm font-medium text-bad">
           Customer is on credit hold — dispatch stays blocked until accounts lifts it.
         </p>
       )}
       {!awaitingClearance && !creditHold && dispatchBlocked && (
-        <p className="mb-2.5 rounded bg-warnSoft/50 px-3 py-2 text-[13px] font-medium text-warn">
+        <p className="mb-3 rounded bg-warnSoft/50 px-3 py-2 text-sm font-medium text-warn">
           {partPaid ? "Advance received. " : ""}
           Collect the {money(shortfall)} balance before dispatch — full payment is needed unless the
           customer is on credit terms.
         </p>
       )}
       {!awaitingClearance && creditRegular && (
-        <p className="mb-2.5 rounded bg-infoSoft/50 px-3 py-2 text-[13px] font-medium text-info">
+        <p className="mb-3 rounded bg-infoSoft/50 px-3 py-2 text-sm font-medium text-info">
           Credit customer — dispatch is allowed with a balance outstanding.
         </p>
       )}
@@ -273,7 +273,7 @@ export function DispatchControl({
       {(hasDispatches || CHALLAN_STAGES.includes(order.dispatch_status)) && (
         <button
           onClick={onOpenDispatches}
-          className={`mb-2.5 flex w-full items-center justify-between gap-2 rounded-lg px-3.5 py-2.5 text-sm font-semibold transition-colors ${
+          className={`mb-3 flex w-full items-center justify-between gap-2 rounded-lg px-3.5 py-2.5 text-sm font-semibold transition-colors ${
             hasDispatches
               ? "border border-line bg-surface text-ink hover:border-lineStrong"
               : "bg-brand text-white hover:bg-brand/90"
@@ -290,7 +290,7 @@ export function DispatchControl({
       )}
 
       {stepper && !holdFor && (
-        <div className="mb-2.5">
+        <div className="mb-3">
           <p className="mb-1.5 text-micro font-medium text-muted">Move to step</p>
           <div className="flex flex-wrap gap-1.5">
             {SETTABLE_STAGES.map((sVal) => {
@@ -300,7 +300,7 @@ export function DispatchControl({
                   key={sVal}
                   onClick={() => act.mutate({ action: sVal })}
                   disabled={act.isPending || on}
-                  className={`rounded-pill px-3 py-1.5 text-[13px] font-medium transition-colors ${
+                  className={`rounded-pill px-3 py-1.5 text-sm font-medium transition-colors ${
                     on
                       ? "bg-brand text-white"
                       : "bg-canvas text-muted hover:bg-line hover:text-ink"
@@ -335,21 +335,21 @@ export function DispatchControl({
       )}
 
       {act.error && (
-        <p className="mt-2 rounded bg-badSoft/50 px-2 py-1.5 text-[13px] text-bad">
+        <p className="mt-2 rounded bg-badSoft/50 px-2 py-1.5 text-sm text-bad">
           {act.error instanceof Error ? act.error.message : "Could not update."}
         </p>
       )}
 
       {holdFor && (
         <div className="mt-1 rounded-lg border border-badSoft bg-badSoft/30 p-3">
-          <p className="text-[13px] font-semibold text-ink">Put this order on hold</p>
+          <p className="text-sm font-semibold text-ink">Put this order on hold</p>
           <p className="mt-0.5 text-micro text-muted">The step is kept — resuming restores it.</p>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {HOLD_REASONS.map((r) => (
               <button
                 key={r}
                 onClick={() => setHoldReason(r === "Other" ? "" : r)}
-                className={`rounded-pill px-2.5 py-1 text-[13px] font-medium ${
+                className={`rounded-pill px-2.5 py-1 text-sm font-medium ${
                   holdReason === r ? "bg-bad text-white" : "bg-surface text-ink hover:bg-canvas"
                 }`}
               >

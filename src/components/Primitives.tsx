@@ -34,7 +34,7 @@ export function Card({ className = "", children }: { className?: string; childre
 export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[13px] font-medium text-muted">{label}</span>
+      <span className="mb-1 block text-sm font-medium text-muted">{label}</span>
       {children}
       {hint && <span className="mt-1 block text-micro text-faint">{hint}</span>}
     </label>

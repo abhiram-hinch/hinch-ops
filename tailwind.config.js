@@ -52,7 +52,11 @@ export default {
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
       },
       fontSize: {
-        micro: ["0.6875rem", { lineHeight: "1rem" }],
+        // Was 0.6875rem/11px — too small to read comfortably once several
+        // status chips and caption lines stack on one screen.
+        micro: ["0.75rem", { lineHeight: "1.125rem" }],
+        sm: ["0.9375rem", { lineHeight: "1.375rem" }],
+        base: ["1rem", { lineHeight: "1.5rem" }],
       },
       borderRadius: {
         sm: "8px",

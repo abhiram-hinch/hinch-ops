@@ -118,7 +118,7 @@ export function CustomerPanel({
         aria-hidden
       />
       <aside
-        className="fixed right-0 top-0 z-40 flex h-screen w-full max-w-[560px] flex-col bg-canvas shadow-pop"
+        className="fixed right-0 top-0 z-40 flex h-screen w-full max-w-[600px] flex-col bg-canvas shadow-pop"
         aria-label={customer?.name ?? "Customer"}
       >
         <header className="border-b border-line bg-surface px-5 py-4">
@@ -165,7 +165,7 @@ export function CustomerPanel({
               editable={mayEditBalance}
             />
           )}
-          {customer?.notes && <p className="mt-2 text-[13px] text-ink">{customer.notes}</p>}
+          {customer?.notes && <p className="mt-2 text-sm text-ink">{customer.notes}</p>}
         </header>
 
         <div className="flex-1 overflow-y-auto p-5">
@@ -176,7 +176,7 @@ export function CustomerPanel({
           ) : (
             <div className="space-y-5">
               <section>
-                <h3 className="mb-2 text-[13px] font-semibold text-ink">
+                <h3 className="mb-2 text-sm font-semibold text-ink">
                   Orders <span className="text-faint">({orders?.length ?? 0})</span>
                 </h3>
                 <ul className="space-y-1.5">
@@ -211,11 +211,11 @@ export function CustomerPanel({
               </section>
 
               <section>
-                <h3 className="mb-2 text-[13px] font-semibold text-ink">
+                <h3 className="mb-2 text-sm font-semibold text-ink">
                   Payments received <span className="text-faint">({payments?.length ?? 0})</span>
                 </h3>
                 {(!payments || payments.length === 0) && (
-                  <p className="text-[13px] text-muted">No payments recorded on any of their orders yet.</p>
+                  <p className="text-sm text-muted">No payments recorded on any of their orders yet.</p>
                 )}
                 {payments && payments.length > 0 && (
                   <ul className="divide-y divide-line border-y border-line">
@@ -241,22 +241,22 @@ export function CustomerPanel({
               </section>
 
               <section>
-                <h3 className="mb-2 text-[13px] font-semibold text-ink">Notes across their orders</h3>
+                <h3 className="mb-2 text-sm font-semibold text-ink">Notes across their orders</h3>
                 {(!notes || notes.length === 0) && (
-                  <p className="text-[13px] text-muted">No notes on any of their orders yet.</p>
+                  <p className="text-sm text-muted">No notes on any of their orders yet.</p>
                 )}
                 {notes && notes.length > 0 && (
                   <ul className="space-y-2.5">
                     {notes.map((n) => (
                       <li key={n.id} className="rounded-lg bg-raised px-3 py-2">
                         <p className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                          <span className="text-[13px] font-semibold text-ink">
+                          <span className="text-sm font-semibold text-ink">
                             {n.profiles?.full_name ?? "Someone"}
                           </span>
                           <span className="num text-micro text-faint">{n.so_number}</span>
                           <span className="text-micro text-faint">{relativeTime(n.created_at)}</span>
                         </p>
-                        <p className="mt-0.5 whitespace-pre-line text-[13px] text-ink">{n.body}</p>
+                        <p className="mt-0.5 whitespace-pre-line text-sm text-ink">{n.body}</p>
                       </li>
                     ))}
                   </ul>

@@ -45,7 +45,7 @@
     @apply h-10 px-4 text-sm;
   }
   .btn-sm {
-    @apply h-8 px-3 text-[13px];
+    @apply h-8 px-3 text-sm;
   }
   .btn-primary {
     @apply btn bg-brand text-white shadow-card hover:bg-brand/90;
@@ -63,12 +63,12 @@
   /* Status pill — soft tint + solid text, set per tone via inline vars. */
   .chip {
     @apply inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-pill px-2.5 py-1
-           text-[13px] font-medium;
+           text-sm font-medium;
   }
 
   /* Segmented / tab pills */
   .seg {
-    @apply inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-pill px-3.5 text-[13px]
+    @apply inline-flex h-9 shrink-0 items-center whitespace-nowrap rounded-pill px-3.5 text-sm
            font-medium transition-colors;
   }
   .seg-on {

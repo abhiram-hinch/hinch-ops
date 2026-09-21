@@ -59,7 +59,7 @@ export function PaymentQueue({ profile }: { profile: Profile }) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <p className="text-[13px] text-muted">
+        <p className="text-sm text-muted">
           <span className="num font-semibold text-ink">{data.length}</span> payment
           {data.length > 1 ? "s" : ""} awaiting confirmation ·{" "}
           <span className="num">{money(total)}</span>

@@ -67,7 +67,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-20 border-b border-line/70 bg-surface/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center gap-5 px-4 py-4 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center gap-5 px-4 py-4 sm:px-6">
           <h1 className="shrink-0 text-xl font-bold tracking-tight text-ink">
             HINCH <span className="text-brand">Ops</span>
           </h1>
@@ -89,7 +89,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
           <div className="hidden shrink-0 rounded-pill border border-line p-0.5 sm:flex">
             <button
               onClick={() => setView("board")}
-              className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
+              className={`rounded-pill px-3 py-1 text-sm font-semibold ${
                 view === "board" ? "bg-brand text-white" : "text-muted hover:text-ink"
               }`}
             >
@@ -97,7 +97,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
             </button>
             <button
               onClick={() => setView("customers")}
-              className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
+              className={`rounded-pill px-3 py-1 text-sm font-semibold ${
                 view === "customers" ? "bg-brand text-white" : "text-muted hover:text-ink"
               }`}
             >
@@ -106,7 +106,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
             {mayClear && (
               <button
                 onClick={() => setView("queue")}
-                className={`flex items-center gap-1.5 rounded-pill px-3 py-1 text-[13px] font-semibold ${
+                className={`flex items-center gap-1.5 rounded-pill px-3 py-1 text-sm font-semibold ${
                   view === "queue" ? "bg-brand text-white" : "text-muted hover:text-ink"
                 }`}
               >
@@ -125,7 +125,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
             {isAdmin && (
               <button
                 onClick={() => setView("analytics")}
-                className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
+                className={`rounded-pill px-3 py-1 text-sm font-semibold ${
                   view === "analytics" ? "bg-brand text-white" : "text-muted hover:text-ink"
                 }`}
               >
@@ -140,7 +140,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
         </div>
       </header>
 
-      <div className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 pb-24 pt-6 sm:px-6">
         {view === "queue" ? (
           <PaymentQueue profile={profile} />
         ) : view === "analytics" ? (

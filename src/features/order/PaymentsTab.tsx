@@ -221,7 +221,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
   return (
     <div className="space-y-5">
       {order.amount_pending_clearance > 0.01 && (
-        <div className="rounded-lg bg-warnSoft/50 px-3 py-2 text-[13px] text-warn">
+        <div className="rounded-lg bg-warnSoft/50 px-3 py-2 text-sm text-warn">
           <span className="num font-semibold">{money(order.amount_pending_clearance)}</span> is
           recorded but still waiting on accounts to confirm it — it doesn&apos;t count as paid yet.
         </div>
@@ -242,7 +242,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
           </div>
         </div>
 
-        <h3 className="mb-2 mt-3.5 text-[13px] font-semibold text-ink">
+        <h3 className="mb-2 mt-3.5 text-sm font-semibold text-ink">
           Payments received <span className="text-faint">({data?.length ?? 0})</span>
         </h3>
 
@@ -250,7 +250,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
         {error && <ErrorNote error={error} retry={() => refetch()} />}
 
         {data && data.length === 0 && (
-          <p className="rounded-lg bg-raised px-3 py-4 text-center text-[13px] text-muted">
+          <p className="rounded-lg bg-raised px-3 py-4 text-center text-sm text-muted">
             No payments yet.{mayEdit ? " Record the first one below." : ""}
           </p>
         )}
@@ -347,7 +347,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
 
       {mayEdit && (
         <section className="border-t border-line pt-4">
-          <h3 className="mb-3 text-[13px] font-semibold text-ink">Record a payment</h3>
+          <h3 className="mb-3 text-sm font-semibold text-ink">Record a payment</h3>
           <div className="card p-3.5">
             <div className="grid grid-cols-2 gap-x-2 gap-y-3">
             <Field label="Amount received">
@@ -471,7 +471,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
           {/* Proof — required for methods that have a slip / screenshot */}
           {spec.wantsReceipt && (
             <div className="mt-3">
-              <p className="mb-1 text-[13px] font-medium text-muted">
+              <p className="mb-1 text-sm font-medium text-muted">
                 Proof of payment <span className="text-bad">*</span>
               </p>
               <ProofPicker
@@ -487,7 +487,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
           <button
             type="button"
             onClick={() => setMoreOpen((v) => !v)}
-            className="mt-3 flex items-center gap-1 text-[13px] font-medium text-muted hover:text-ink"
+            className="mt-3 flex items-center gap-1 text-sm font-medium text-muted hover:text-ink"
           >
             <ChevronDown
               size={14}
@@ -536,7 +536,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
 
               {!spec.wantsReceipt && (
                 <div>
-                  <p className="mb-1 text-[13px] font-medium text-muted">
+                  <p className="mb-1 text-sm font-medium text-muted">
                     Proof <span className="text-faint">(optional)</span>
                   </p>
                   <ProofPicker proofs={proofs} setProofs={setProofs} fileRef={fileRef} />
@@ -544,7 +544,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
               )}
 
               <div>
-                <p className="mb-1 text-[13px] font-medium text-muted">
+                <p className="mb-1 text-sm font-medium text-muted">
                   Note <span className="text-faint">(optional)</span>
                 </p>
                 <textarea
@@ -576,7 +576,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
           </p>
 
           {justSaved && (
-            <p className="mt-2 flex items-center justify-center gap-1.5 text-[13px] font-medium text-good">
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-sm font-medium text-good">
               <CheckCircle2 size={14} /> Payment recorded
             </p>
           )}
@@ -590,7 +590,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
       )}
 
       <div className="border-t border-line pt-4">
-        <h3 className="mb-3 text-[13px] font-semibold text-ink">Notes</h3>
+        <h3 className="mb-3 text-sm font-semibold text-ink">Notes</h3>
         <NotesTab order={order} profile={profile} />
       </div>
     </div>

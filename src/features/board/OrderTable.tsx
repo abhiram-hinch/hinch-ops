@@ -105,7 +105,7 @@ export function OrderTable({
                 color={paymentViewColor[pv]}
                 showPct={false}
               />
-              <span className={`text-[13px] font-medium ${toneText[paymentViewTone[pv]]}`}>
+              <span className={`text-sm font-medium ${toneText[paymentViewTone[pv]]}`}>
                 {paymentViewLabel[pv]}
               </span>
               {moneyNote && (

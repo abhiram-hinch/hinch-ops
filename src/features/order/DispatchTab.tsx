@@ -147,7 +147,7 @@ export function DispatchTab({ order, profile }: { order: BoardRow; profile: Prof
       {isLoading && <Skeleton rows={2} />}
 
       {!isLoading && !hasChallans && (
-        <p className="rounded-lg bg-raised px-3 py-4 text-center text-[13px] text-muted">
+        <p className="rounded-lg bg-raised px-3 py-4 text-center text-sm text-muted">
           No delivery challans yet.{mayEdit && !orderClosed ? " Create the first one below." : ""}
         </p>
       )}

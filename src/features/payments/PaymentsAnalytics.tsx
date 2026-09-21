@@ -130,14 +130,14 @@ export function PaymentsAnalytics({ from, range }: { from: string | null; range:
       </div>
 
       <div className="card p-4">
-        <h3 className="mb-3 flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+        <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-ink">
           <TrendingUp size={14} className="text-muted" /> Payments received over time
         </h3>
         <TrendLine data={trend} formatValue={money} />
       </div>
 
       <div className="card p-4">
-        <h3 className="mb-3 text-[13px] font-semibold text-ink">Cleared vs pending (recent)</h3>
+        <h3 className="mb-3 text-sm font-semibold text-ink">Cleared vs pending (recent)</h3>
         <BarRows
           rows={clearedVsPending}
           formatValue={money}
@@ -149,12 +149,12 @@ export function PaymentsAnalytics({ from, range }: { from: string | null; range:
       </div>
 
       <div className="card p-4">
-        <h3 className="mb-3 text-[13px] font-semibold text-ink">Payment method mix</h3>
+        <h3 className="mb-3 text-sm font-semibold text-ink">Payment method mix</h3>
         <BarRows rows={byMethod} formatValue={money} />
       </div>
 
       <div className="card p-4">
-        <h3 className="mb-3 text-[13px] font-semibold text-ink">Credit exposure by age</h3>
+        <h3 className="mb-3 text-sm font-semibold text-ink">Credit exposure by age</h3>
         {credit.isLoading && <Skeleton rows={3} />}
         {credit.data && <BarRows rows={creditRows} formatValue={money} />}
       </div>

@@ -42,7 +42,7 @@ export function CustomersPage({
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search customers"
             aria-label="Search customers"
-            className="field h-9 w-full pl-8 text-[13px]"
+            className="field h-9 w-full pl-8 text-sm"
           />
         </div>
       </div>

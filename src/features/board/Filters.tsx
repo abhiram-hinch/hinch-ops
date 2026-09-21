@@ -42,7 +42,7 @@ export function Filters({
           onChange(p === "custom" ? { datePreset: p } : { datePreset: p, fromDate: "", toDate: "" });
         }}
         aria-label="Date range"
-        className="h-9 w-auto text-[13px]"
+        className="h-9 w-auto text-sm"
       >
         {DATE_OPTIONS.map((o) => (
           <option key={o.value} value={o.value}>
@@ -58,7 +58,7 @@ export function Filters({
             value={value.fromDate}
             onChange={(e) => onChange({ fromDate: e.target.value })}
             aria-label="From date"
-            className="h-9 w-auto text-[13px]"
+            className="h-9 w-auto text-sm"
           />
           <span className="text-micro text-faint">to</span>
           <Input
@@ -66,7 +66,7 @@ export function Filters({
             value={value.toDate}
             onChange={(e) => onChange({ toDate: e.target.value })}
             aria-label="To date"
-            className="h-9 w-auto text-[13px]"
+            className="h-9 w-auto text-sm"
           />
         </>
       )}
@@ -75,7 +75,7 @@ export function Filters({
         value={value.payment}
         onChange={(e) => onChange({ payment: e.target.value as PaymentStatus | "all" })}
         aria-label="Payment"
-        className="h-9 w-auto text-[13px]"
+        className="h-9 w-auto text-sm"
       >
         <option value="all">Any payment</option>
         {(["pending", "advance_paid", "fully_paid", "overpaid"] as PaymentStatus[]).map((p) => (
@@ -89,7 +89,7 @@ export function Filters({
         value={value.salesperson}
         onChange={(e) => onChange({ salesperson: e.target.value })}
         aria-label="Salesperson"
-        className="h-9 w-auto text-[13px]"
+        className="h-9 w-auto text-sm"
       >
         <option value="">Any salesperson</option>
         {salespeople.map((s) => (

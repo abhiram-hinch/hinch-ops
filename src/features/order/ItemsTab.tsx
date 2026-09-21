@@ -88,7 +88,7 @@ function ItemDetail({
               if (trimmed !== (line.vendor_name ?? "")) onSetVendor(trimmed || null);
             }}
             placeholder="Who's this being procured from?"
-            className="h-8 flex-1 text-[13px]"
+            className="h-8 flex-1 text-sm"
           />
         </div>
       ) : (

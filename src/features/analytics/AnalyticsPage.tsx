@@ -40,7 +40,7 @@ export function AnalyticsPage() {
             <button
               key={key}
               onClick={() => setRange(key)}
-              className={`rounded-pill px-3 py-1 text-[13px] font-semibold ${
+              className={`rounded-pill px-3 py-1 text-sm font-semibold ${
                 range === key ? "bg-brand text-white" : "text-muted hover:text-ink"
               }`}
             >
@@ -55,7 +55,7 @@ export function AnalyticsPage() {
           <button
             key={key}
             onClick={() => setSection(key)}
-            className={`-mb-px border-b-2 px-3 py-2 text-[13px] font-medium transition-colors ${
+            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
               section === key ? "border-brand text-brand" : "border-transparent text-muted hover:text-ink"
             }`}
           >

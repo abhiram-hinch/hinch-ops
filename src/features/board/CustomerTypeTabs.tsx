@@ -31,7 +31,7 @@ export function CustomerTypeTabs({
             key={v}
             onClick={() => onSelect(v)}
             aria-pressed={on}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-pill border px-3 py-1.5 text-[13px] font-semibold transition-colors ${
+            className={`inline-flex shrink-0 items-center gap-1.5 rounded-pill border px-3 py-1.5 text-sm font-semibold transition-colors ${
               on
                 ? "border-brand bg-brand text-white"
                 : "border-line bg-surface text-muted hover:text-ink"

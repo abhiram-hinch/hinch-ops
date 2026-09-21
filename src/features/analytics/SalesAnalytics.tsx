@@ -92,19 +92,19 @@ export function SalesAnalytics({ from, range }: { from: string | null; range: An
       </div>
 
       <div className="card p-4">
-        <h3 className="mb-3 flex items-center gap-1.5 text-[13px] font-semibold text-ink">
+        <h3 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-ink">
           <TrendingUp size={14} className="text-muted" /> Order value over time
         </h3>
         <TrendLine data={trend} formatValue={money} />
       </div>
 
       <div className="card p-4">
-        <h3 className="mb-3 text-[13px] font-semibold text-ink">Salesperson leaderboard</h3>
+        <h3 className="mb-3 text-sm font-semibold text-ink">Salesperson leaderboard</h3>
         <BarRows rows={bySalesperson} formatValue={money} />
       </div>
 
       <div className="card p-4">
-        <h3 className="mb-3 text-[13px] font-semibold text-ink">Top customers</h3>
+        <h3 className="mb-3 text-sm font-semibold text-ink">Top customers</h3>
         <BarRows rows={byCustomer} formatValue={money} />
       </div>
     </div>

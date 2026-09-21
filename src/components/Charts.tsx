@@ -41,7 +41,7 @@ export function TrendLine({
   const max = Math.max(1, ...data.map((d) => d.value));
 
   if (n === 0) {
-    return <p className="py-8 text-center text-[13px] text-muted">No data for this period.</p>;
+    return <p className="py-8 text-center text-sm text-muted">No data for this period.</p>;
   }
 
   const x = (i: number) => padL + (n <= 1 ? innerW / 2 : (i / (n - 1)) * innerW);
@@ -129,7 +129,7 @@ export function BarRows({
   const max = Math.max(1, ...rows.map((r) => r.segments.reduce((s, seg) => s + seg.value, 0)));
 
   if (rows.length === 0) {
-    return <p className="py-6 text-center text-[13px] text-muted">No data for this period.</p>;
+    return <p className="py-6 text-center text-sm text-muted">No data for this period.</p>;
   }
 
   return (
@@ -148,7 +148,7 @@ export function BarRows({
         const total = r.segments.reduce((s, seg) => s + seg.value, 0);
         return (
           <div key={r.label} className="flex items-center gap-3">
-            <span className="w-32 shrink-0 truncate text-[13px] text-ink" title={r.label}>
+            <span className="w-32 shrink-0 truncate text-sm text-ink" title={r.label}>
               {r.label}
             </span>
             <div className="h-5 flex-1 rounded bg-raised">
@@ -164,7 +164,7 @@ export function BarRows({
                 ))}
               </div>
             </div>
-            <span className="num w-24 shrink-0 text-right text-[13px] font-medium text-ink">
+            <span className="num w-24 shrink-0 text-right text-sm font-medium text-ink">
               {formatValue(total)}
             </span>
           </div>

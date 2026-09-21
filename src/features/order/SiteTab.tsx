@@ -85,7 +85,7 @@ function StorePickupNotice() {
         <Store size={17} />
       </span>
       <div>
-        <p className="text-[13px] font-semibold text-ink">Store pickup — Hinch Store, Hafeezpet</p>
+        <p className="text-sm font-semibold text-ink">Store pickup — Hinch Store, Hafeezpet</p>
         <p className="text-micro text-muted">Customer collects this order in person. No delivery site needed.</p>
       </div>
     </div>
@@ -162,7 +162,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
   return (
     <div className="space-y-4">
       {!complete && (
-        <div className="flex items-start gap-2 rounded-lg bg-warnSoft/60 px-3.5 py-3 text-[13px] text-warn">
+        <div className="flex items-start gap-2 rounded-lg bg-warnSoft/60 px-3.5 py-3 text-sm text-warn">
           <AlertTriangle size={15} className="mt-0.5 shrink-0" />
           <span>
             Precise location, floor, and service lift are required before this order can move to{" "}
@@ -177,14 +177,14 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
 
       {!effectivePickup && (
         <div className="card p-3.5">
-          <p className="mb-2 text-[13px] font-semibold text-ink">Location</p>
+          <p className="mb-2 text-sm font-semibold text-ink">Location</p>
           <div className="flex items-center gap-2">
             {maps ? (
               <a href={maps} target="_blank" rel="noopener noreferrer" className="btn-soft btn-sm gap-1.5">
                 <MapPin size={13} /> Open in Maps
               </a>
             ) : (
-              <p className="text-[13px] text-muted">No address on this order yet.</p>
+              <p className="text-sm text-muted">No address on this order yet.</p>
             )}
             {maps && !data?.maps_url && (
               <span className="text-micro text-faint">Guessed from Zoho's address — may be off</span>
@@ -197,7 +197,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
       {!mayEdit ? (
         !effectivePickup && (
           <div className="card p-3.5">
-            <p className="mb-1 text-[13px] font-semibold text-ink">Site details</p>
+            <p className="mb-1 text-sm font-semibold text-ink">Site details</p>
             <ReadOnlyRow label="Building type" value={buildingType ? buildingTypeLabel[buildingType] : "—"} />
             <ReadOnlyRow label="Block" value={block || "—"} />
             <ReadOnlyRow label="Floor" value={floor || "—"} />
@@ -213,7 +213,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
         )
       ) : (
         <div className="card p-3.5">
-          <p className="mb-3 text-[13px] font-semibold text-ink">Site details</p>
+          <p className="mb-3 text-sm font-semibold text-ink">Site details</p>
 
           {/* How this order reaches the customer — mutually exclusive, so a
               plain two-way switch reads clearer than a checkbox buried in a form. */}
@@ -221,7 +221,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
             <button
               type="button"
               onClick={() => setPickupMode(false)}
-              className={`flex-1 rounded-pill px-3 py-1.5 text-[13px] font-medium transition-colors ${
+              className={`flex-1 rounded-pill px-3 py-1.5 text-sm font-medium transition-colors ${
                 !pickupMode ? "bg-brand text-white" : "text-muted hover:text-ink"
               }`}
             >
@@ -230,7 +230,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
             <button
               type="button"
               onClick={() => setPickupMode(true)}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-pill px-3 py-1.5 text-[13px] font-medium transition-colors ${
+              className={`flex flex-1 items-center justify-center gap-1.5 rounded-pill px-3 py-1.5 text-sm font-medium transition-colors ${
                 pickupMode ? "bg-brand text-white" : "text-muted hover:text-ink"
               }`}
             >
@@ -280,7 +280,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
               </div>
 
               <div className="mt-3">
-                <p className="mb-1 text-[13px] font-medium text-muted">Precise location *</p>
+                <p className="mb-1 text-sm font-medium text-muted">Precise location *</p>
                 <Input
                   ref={mapsInputRef}
                   value={mapsOverride}
@@ -304,7 +304,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
           )}
 
           <div className="mt-3">
-            <p className="mb-1 text-[13px] font-medium text-muted">
+            <p className="mb-1 text-sm font-medium text-muted">
               Notes <span className="text-faint">(optional)</span>
             </p>
             <textarea
@@ -324,7 +324,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
             {save.isPending ? "Saving…" : pickupMode ? "Confirm store pickup" : "Save site details"}
           </button>
           {justSaved && (
-            <p className="mt-2 flex items-center justify-center gap-1.5 text-[13px] font-medium text-good">
+            <p className="mt-2 flex items-center justify-center gap-1.5 text-sm font-medium text-good">
               <CheckCircle2 size={14} /> Saved
             </p>
           )}

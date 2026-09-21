@@ -55,7 +55,7 @@ export function NotesTab({ order, profile }: { order: BoardRow; profile: Profile
       {error && <ErrorNote error={error} retry={() => refetch()} />}
 
       {data && data.length === 0 && (
-        <p className="rounded-lg bg-raised px-3 py-4 text-center text-[13px] text-muted">
+        <p className="rounded-lg bg-raised px-3 py-4 text-center text-sm text-muted">
           No notes yet. Leave one for the team above.
         </p>
       )}
@@ -69,7 +69,7 @@ export function NotesTab({ order, profile }: { order: BoardRow; profile: Profile
               </span>
               <div className="min-w-0 flex-1 rounded-lg bg-raised px-3 py-2">
                 <p className="flex items-baseline gap-2">
-                  <span className="text-[13px] font-semibold text-ink">
+                  <span className="text-sm font-semibold text-ink">
                     {c.profiles?.full_name ?? "Someone"}
                   </span>
                   <span className="text-micro text-faint">{relativeTime(c.created_at)}</span>

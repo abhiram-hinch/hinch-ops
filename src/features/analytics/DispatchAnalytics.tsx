@@ -107,7 +107,7 @@ export function DispatchAnalytics({ from, range }: { from: string | null; range:
       </div>
 
       <div className="card p-4">
-        <h3 className="mb-1 text-[13px] font-semibold text-ink">Orders in progress, by stage</h3>
+        <h3 className="mb-1 text-sm font-semibold text-ink">Orders in progress, by stage</h3>
         <p className="mb-3 text-micro text-faint">Blue = moving normally · amber = 3+ days in that stage</p>
         <BarRows
           rows={stageRows}
@@ -119,7 +119,7 @@ export function DispatchAnalytics({ from, range }: { from: string | null; range:
       </div>
 
       <div className="card p-4">
-        <h3 className="mb-3 text-[13px] font-semibold text-ink">Dispatch volume over time</h3>
+        <h3 className="mb-3 text-sm font-semibold text-ink">Dispatch volume over time</h3>
         <TrendLine data={volumeTrend} formatValue={(v) => `${v} dispatched`} color="#4a3aa7" />
       </div>
 

@@ -196,7 +196,11 @@ export function CustomerPanel({
                             <span className={`text-micro font-medium ${toneText[paymentViewTone[pv]]}`}>
                               {paymentViewLabel[pv]}
                             </span>
-                            <StatusBadge status={o.dispatch_status} size="sm" />
+                            <StatusBadge
+                              status={o.dispatch_status}
+                              size="sm"
+                              blockedOnSiteDetails={o.blocked_on_site_details}
+                            />
                             <span className="num text-sm font-semibold text-ink">{money(o.total)}</span>
                           </div>
                         </button>

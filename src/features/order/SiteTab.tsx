@@ -162,12 +162,11 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
   return (
     <div className="space-y-4">
       {!complete && (
-        <div className="flex items-start gap-2 rounded-lg bg-warnSoft/60 px-3.5 py-3 text-sm text-warn">
-          <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+        <div className="flex items-start gap-1.5 rounded-md bg-warnSoft/40 px-2.5 py-1.5 text-micro text-warn">
+          <AlertTriangle size={12} className="mt-0.5 shrink-0" />
           <span>
-            Precise location, floor, and service lift are required before this order can move to{" "}
-            <strong>Ready to procure</strong> — or mark it as a store pickup if the customer's
-            collecting it themselves.
+            Location, floor, and service lift are needed before <strong>Ready to procure</strong> —
+            or mark it a store pickup.
             {!mayEdit && " Sales needs to fill this in."}
           </span>
         </div>

@@ -2,10 +2,7 @@ import { useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
-  ChevronRight,
-  FileText,
   MapPin,
-  PackageCheck,
   PauseCircle,
   Store,
 } from "lucide-react";
@@ -30,16 +27,7 @@ import {
 } from "@/hooks/useBoard";
 import { money } from "@/lib/format";
 import { Input, Select } from "@/components/Primitives";
-import type { BoardRow, DispatchStatus, OrderAction, Profile } from "@/types/database";
-
-/** Stages where starting a delivery challan makes sense. */
-const CHALLAN_STAGES: DispatchStatus[] = [
-  "at_warehouse",
-  "ready_to_dispatch",
-  "partially_dispatched",
-  "dispatched",
-  "partially_delivered",
-];
+import type { BoardRow, OrderAction, Profile } from "@/types/database";
 
 /** Sales calls this; warehouse just needs to see it plainly. */
 function ProcurementLocationControl({ order, profile }: { order: BoardRow; profile: Profile }) {
@@ -201,11 +189,9 @@ function DispatchBeforePaymentAlert({ order, profile }: { order: BoardRow; profi
 export function DispatchControl({
   order,
   profile,
-  onOpenDispatches,
 }: {
   order: BoardRow;
   profile: Profile;
-  onOpenDispatches: () => void;
 }) {
   const act = useOrderAction(order.id);
   const mayEdit = canEditDispatch(profile.role);
@@ -223,7 +209,7 @@ export function DispatchControl({
 
   if (!mayEdit) {
     return (
-      <div className="px-5 py-4">
+      <div className="border-b border-line pb-4">
         <ProcurementLocationControl order={order} profile={profile} />
         <StorePickupBanner order={order} />
         <DispatchBeforePaymentAlert order={order} profile={profile} />
@@ -241,7 +227,7 @@ export function DispatchControl({
     creditHold || (!creditRegular && order.payment_status !== "fully_paid" && shortfall > 0.01);
 
   return (
-    <div className="px-5 py-4">
+    <div className="border-b border-line pb-4">
       <ProcurementLocationControl order={order} profile={profile} />
       <StorePickupBanner order={order} />
       <DispatchBeforePaymentAlert order={order} profile={profile} />
@@ -267,26 +253,6 @@ export function DispatchControl({
         <p className="mb-3 rounded bg-infoSoft/50 px-3 py-2 text-sm font-medium text-info">
           Credit customer — dispatch is allowed with a balance outstanding.
         </p>
-      )}
-
-      {/* Delivery challans — the dispatch team's primary action, kept prominent */}
-      {(hasDispatches || CHALLAN_STAGES.includes(order.dispatch_status)) && (
-        <button
-          onClick={onOpenDispatches}
-          className={`mb-3 flex w-full items-center justify-between gap-2 rounded-lg px-3.5 py-2.5 text-sm font-semibold transition-colors ${
-            hasDispatches
-              ? "border border-line bg-surface text-ink hover:border-lineStrong"
-              : "bg-brand text-white hover:bg-brand/90"
-          }`}
-        >
-          <span className="flex items-center gap-2">
-            {hasDispatches ? <FileText size={16} /> : <PackageCheck size={16} />}
-            {hasDispatches
-              ? `Delivery challans — ${order.dispatch_count} created, ${order.delivered_count} delivered`
-              : "Create delivery challan"}
-          </span>
-          <ChevronRight size={16} />
-        </button>
       )}
 
       {stepper && !holdFor && (

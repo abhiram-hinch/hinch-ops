@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { X, Pencil, Check, Phone, FileText, ExternalLink } from "lucide-react";
+import { X, Pencil, Check, Phone, FileText, ExternalLink, AlertTriangle, ChevronRight } from "lucide-react";
 import { money, moneyExact, shortDate, relativeTime } from "@/lib/format";
 import {
   paymentView,
@@ -172,16 +172,23 @@ export function OrderPanel({
               <ProcureFirstControl order={order} role={profile.role} />
             </div>
           )}
-        </header>
 
-        {/* Dispatch actions (own their own copy of the permission note) */}
-        <div className="border-b border-line bg-surface">
-          <DispatchControl
-            order={order}
-            profile={profile}
-            onOpenDispatches={() => setTab("delivery")}
-          />
-        </div>
+          {/* The one thing that genuinely needs to be seen from any tab — a
+              procure-first order sitting unpaid with no dispatch approval yet.
+              Everything else dispatch-related lives on the Delivery tab now,
+              instead of stacking above every tab regardless of relevance. */}
+          {order.dispatch_locked_on_payment && (
+            <button
+              onClick={() => setTab("delivery")}
+              className="mt-3 flex w-full items-center justify-between gap-2 rounded-lg bg-badSoft/50 px-3 py-2 text-left text-sm font-medium text-bad hover:bg-badSoft/70"
+            >
+              <span className="flex items-center gap-1.5">
+                <AlertTriangle size={14} className="shrink-0" /> Bought before payment — dispatch needs approval
+              </span>
+              <ChevronRight size={15} className="shrink-0" />
+            </button>
+          )}
+        </header>
 
         {/* Tabs */}
         <nav className="flex gap-1 border-b border-line bg-surface px-3" role="tablist">
@@ -204,7 +211,12 @@ export function OrderPanel({
 
         <div className="flex-1 overflow-y-auto p-5">
           {tab === "payments" && <PaymentsTab order={order} profile={profile} />}
-          {tab === "delivery" && <DispatchTab order={order} profile={profile} />}
+          {tab === "delivery" && (
+            <div className="space-y-5">
+              <DispatchControl order={order} profile={profile} />
+              <DispatchTab order={order} profile={profile} />
+            </div>
+          )}
           {tab === "items" && <ItemsTab order={order} profile={profile} syncing={syncDetail.isPending} />}
           {tab === "site" && <SiteTab order={order} profile={profile} />}
           {tab === "details" && (

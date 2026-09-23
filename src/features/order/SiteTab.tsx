@@ -57,15 +57,16 @@ const LIFT_OPTIONS: { value: string; label: string }[] = [
   { value: "no", label: "No" },
 ];
 
-/** Mirrors site_details_complete() in Postgres — keep the two in sync. */
+/**
+ * Mirrors site_details_complete() in Postgres — keep the two in sync.
+ * Floor and service lift are informational only for now, not required.
+ */
 function isComplete(data: {
   is_store_pickup: boolean;
   maps_url: string | null;
-  floor: string | null;
-  has_service_lift: boolean | null;
 } | null | undefined): boolean {
   if (data?.is_store_pickup) return true;
-  return !!(data?.maps_url?.trim() && data?.floor?.trim() && data?.has_service_lift !== null && data?.has_service_lift !== undefined);
+  return !!data?.maps_url?.trim();
 }
 
 function ReadOnlyRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -152,9 +153,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
   const maps = data?.maps_url || mapsUrl(order.ship_to);
   // Sales gets live feedback as they fill the form or flip the toggle;
   // warehouse (read-only) only ever sees what's actually been saved.
-  const complete = mayEdit
-    ? pickupMode || !!(mapsOverride.trim() && floor.trim() && lift !== "")
-    : isComplete(data);
+  const complete = mayEdit ? pickupMode || !!mapsOverride.trim() : isComplete(data);
   const effectivePickup = mayEdit ? pickupMode : !!data?.is_store_pickup;
 
   if (isLoading) return <Skeleton rows={5} />;
@@ -162,12 +161,11 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
   return (
     <div className="space-y-4">
       {!complete && (
-        <div className="flex items-start gap-2 rounded-lg bg-warnSoft/60 px-3.5 py-3 text-sm text-warn">
-          <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+        <div className="flex items-start gap-1.5 rounded-md bg-warnSoft/40 px-2.5 py-1.5 text-micro text-warn">
+          <AlertTriangle size={12} className="mt-0.5 shrink-0" />
           <span>
-            Precise location, floor, and service lift are required before this order can move to{" "}
-            <strong>Ready to procure</strong> — or mark it as a store pickup if the customer's
-            collecting it themselves.
+            Precise location is needed before <strong>Ready to procure</strong> — or mark it a
+            store pickup.
             {!mayEdit && " Sales needs to fill this in."}
           </span>
         </div>
@@ -257,7 +255,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
                     ))}
                   </Select>
                 </Field>
-                <Field label="Service lift *">
+                <Field label="Service lift">
                   <Select value={lift} onChange={(e) => setLift(e.target.value)} className="w-full">
                     {LIFT_OPTIONS.map((o) => (
                       <option key={o.value} value={o.value}>
@@ -269,7 +267,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
                 <Field label="Block">
                   <Input value={block} onChange={(e) => setBlock(e.target.value)} className="w-full" />
                 </Field>
-                <Field label="Floor *">
+                <Field label="Floor">
                   <Input value={floor} onChange={(e) => setFloor(e.target.value)} className="w-full" />
                 </Field>
                 <div className="col-span-2">

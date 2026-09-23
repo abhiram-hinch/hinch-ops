@@ -349,6 +349,8 @@ export interface Payment {
   source: string;
   voided: boolean;
   voided_reason: string | null;
+  /** Set when this was recorded as one payment split across several orders. */
+  combined_payment_group: string | null;
   profiles?: { full_name: string } | null;
   bank_accounts?: { label: string } | null;
   payment_receipts?: PaymentReceipt[];

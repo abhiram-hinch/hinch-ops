@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Check, Pencil, X } from "lucide-react";
+import { Check, Pencil, Plus, X } from "lucide-react";
 import { money, moneyExact, relativeTime, shortDate } from "@/lib/format";
 import {
   clearanceLabel,
@@ -11,7 +11,7 @@ import {
   paymentViewLabel,
   paymentViewTone,
 } from "@/lib/labels";
-import { canSetCreditHold } from "@/hooks/useAuth";
+import { canEditPayments, canSetCreditHold } from "@/hooks/useAuth";
 import { StatusBadge, toneChip, toneText } from "@/lib/statusUi";
 import {
   useCustomer,
@@ -21,6 +21,8 @@ import {
   useSetOpeningBalance,
 } from "@/hooks/useCustomers";
 import { ErrorNote, Skeleton } from "@/components/Primitives";
+import { RecordCombinedPayment } from "./RecordCombinedPayment";
+import { CombinedBadge } from "@/features/payments/CombinedBadge";
 import type { Profile } from "@/types/database";
 
 function OpeningBalanceField({
@@ -103,6 +105,8 @@ export function CustomerPanel({
   const { data: payments } = useCustomerPayments(orderIds);
   const { data: notes } = useCustomerNotes(orderIds);
   const mayEditBalance = canSetCreditHold(profile.role);
+  const mayRecordPayment = canEditPayments(profile.role);
+  const [combinedOpen, setCombinedOpen] = useState(false);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -211,9 +215,31 @@ export function CustomerPanel({
               </section>
 
               <section>
-                <h3 className="mb-2 text-sm font-semibold text-ink">
-                  Payments received <span className="text-faint">({payments?.length ?? 0})</span>
-                </h3>
+                <div className="mb-2 flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-ink">
+                    Payments received <span className="text-faint">({payments?.length ?? 0})</span>
+                  </h3>
+                  {mayRecordPayment && !combinedOpen && (orders?.length ?? 0) >= 2 && (
+                    <button
+                      onClick={() => setCombinedOpen(true)}
+                      className="btn-soft btn-sm gap-1.5"
+                    >
+                      <Plus size={13} /> Combined payment
+                    </button>
+                  )}
+                </div>
+
+                {combinedOpen && orders && (
+                  <div className="mb-3">
+                    <RecordCombinedPayment
+                      orders={orders}
+                      userId={profile.id}
+                      onDone={() => setCombinedOpen(false)}
+                      onCancel={() => setCombinedOpen(false)}
+                    />
+                  </div>
+                )}
+
                 {(!payments || payments.length === 0) && (
                   <p className="text-sm text-muted">No payments recorded on any of their orders yet.</p>
                 )}
@@ -233,6 +259,7 @@ export function CustomerPanel({
                             {p.bank_accounts?.label ? ` · into ${p.bank_accounts.label}` : ""}
                             {p.so_number ? ` · ${p.so_number}` : ""} · paid {shortDate(p.paid_on)}
                           </p>
+                          <CombinedBadge payment={p} />
                         </div>
                       </li>
                     ))}

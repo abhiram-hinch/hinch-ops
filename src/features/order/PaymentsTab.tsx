@@ -31,6 +31,7 @@ import {
   useVoidPayment,
 } from "@/hooks/useBoard";
 import { ErrorNote, Field, Input, Select, Skeleton } from "@/components/Primitives";
+import { CombinedBadge } from "@/features/payments/CombinedBadge";
 import { NotesTab } from "./NotesTab";
 import type {
   BoardRow,
@@ -275,6 +276,7 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
                     <p className="text-micro text-faint">Reason: {p.voided_reason}</p>
                   )}
                   {p.note && <p className="mt-0.5 text-micro text-ink">“{p.note}”</p>}
+                  <CombinedBadge payment={p} />
                   <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
                     {(p.payment_receipts ?? []).map((r, i) => (
                       <ReceiptLink key={r.id} receipt={r} index={i} />

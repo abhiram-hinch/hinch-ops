@@ -578,6 +578,92 @@ async function uploadReceipts(
   }
 }
 
+/**
+ * One customer payment that covers several orders at once. Every row is
+ * still an ordinary single-order payment — same triggers, same gates — just
+ * inserted together (atomic: Postgres makes a multi-row INSERT all-or-
+ * nothing) and tagged with a shared group id so they don't read as three
+ * unrelated payments later.
+ */
+export function useRecordCombinedPayment() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (
+      input: Omit<PaymentInput, "amount"> & {
+        note?: string;
+        userId: string;
+        proofs?: File[];
+        allocations: { orderId: string; amount: number }[];
+      },
+    ) => {
+      const { userId, note, proofs, allocations, ...fields } = input;
+      const group = crypto.randomUUID();
+      const rows = allocations.map((a) => ({
+        sales_order_id: a.orderId,
+        amount: a.amount,
+        payment_method: fields.payment_method,
+        reference_no: fields.reference_no || null,
+        note: note || null,
+        paid_on: fields.paid_on,
+        recorded_by: userId,
+        received_by: userId,
+        deposited_to: fields.deposited_to,
+        transfer_rail: fields.transfer_rail ?? null,
+        card_network: fields.card_network ?? null,
+        card_last4: fields.card_last4 || null,
+        cheque_date: fields.cheque_date || null,
+        drawee_bank: fields.drawee_bank || null,
+        approved_by: fields.approved_by ?? null,
+        combined_payment_group: group,
+      }));
+
+      const { data, error } = await supabase
+        .from("payments")
+        .insert(rows)
+        .select("id, sales_order_id");
+      if (error) throw new Error(error.message);
+
+      if (proofs && proofs.length > 0 && data) {
+        for (const row of data) {
+          await uploadReceipts(row.sales_order_id, row.id, proofs, userId);
+        }
+      }
+
+      return { group, orderIds: allocations.map((a) => a.orderId) };
+    },
+    onSuccess: ({ orderIds }) => {
+      for (const id of orderIds) {
+        qc.invalidateQueries({ queryKey: qk.payments(id) });
+        qc.invalidateQueries({ queryKey: qk.activity(id) });
+      }
+      qc.invalidateQueries({ queryKey: ["board"] });
+      qc.invalidateQueries({ queryKey: ["payment-queue"] });
+      qc.invalidateQueries({ queryKey: ["customers"] });
+    },
+  });
+}
+
+/** The other orders one combined payment also covered, for display next to any single row. */
+export function useCombinedPaymentSiblings(group: string | null, excludePaymentId: string) {
+  return useQuery({
+    queryKey: ["combined-payment-siblings", group],
+    enabled: !!group,
+    queryFn: async (): Promise<{ id: string; amount: number; so_number: string | null }[]> => {
+      const { data, error } = await supabase
+        .from("payments")
+        .select("id, amount, sales_orders(so_number)")
+        .eq("combined_payment_group", group!)
+        .neq("id", excludePaymentId)
+        .eq("voided", false);
+      if (error) throw error;
+      return (data ?? []).map((row) => {
+        const r = row as unknown as { id: string; amount: number; sales_orders: { so_number: string | null } | null };
+        return { id: r.id, amount: r.amount, so_number: r.sales_orders?.so_number ?? null };
+      });
+    },
+  });
+}
+
 /** Attach one or more proof files to a payment that already exists. */
 export function useAddPaymentReceipts(orderId: string) {
   const qc = useQueryClient();

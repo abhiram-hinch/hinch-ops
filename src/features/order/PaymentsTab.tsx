@@ -4,7 +4,6 @@ import {
   ChevronDown,
   Paperclip,
   Upload,
-  X,
   XCircle,
 } from "lucide-react";
 import {
@@ -32,6 +31,7 @@ import {
 } from "@/hooks/useBoard";
 import { ErrorNote, Field, Input, Select, Skeleton } from "@/components/Primitives";
 import { CombinedBadge } from "@/features/payments/CombinedBadge";
+import { ProofPicker } from "@/features/payments/ProofPicker";
 import { NotesTab } from "./NotesTab";
 import type {
   BoardRow,
@@ -596,100 +596,5 @@ export function PaymentsTab({ order, profile }: { order: BoardRow; profile: Prof
         <NotesTab order={order} profile={profile} />
       </div>
     </div>
-  );
-}
-
-/** image/* or application/pdf, matching the file input's own accept attribute
- *  — dropped files skip that native filtering, so it's enforced here too. */
-function isAcceptedProofFile(f: File): boolean {
-  return f.type.startsWith("image/") || f.type === "application/pdf";
-}
-
-function ProofPicker({
-  proofs,
-  setProofs,
-  fileRef,
-  hint,
-}: {
-  proofs: File[];
-  setProofs: React.Dispatch<React.SetStateAction<File[]>>;
-  fileRef: React.RefObject<HTMLInputElement>;
-  hint?: string;
-}) {
-  const [dragging, setDragging] = useState(false);
-  const [rejected, setRejected] = useState(false);
-  const dragCounter = useRef(0);
-
-  function acceptFiles(files: FileList | File[]) {
-    const all = Array.from(files);
-    const accepted = all.filter(isAcceptedProofFile);
-    setRejected(accepted.length < all.length);
-    if (accepted.length) setProofs(accepted);
-  }
-
-  return (
-    <>
-      <input
-        ref={fileRef}
-        type="file"
-        accept={ACCEPT}
-        multiple
-        onChange={(e) => e.target.files && acceptFiles(e.target.files)}
-        className="hidden"
-      />
-      <div
-        onDragEnter={(e) => {
-          e.preventDefault();
-          dragCounter.current += 1;
-          setDragging(true);
-        }}
-        onDragOver={(e) => e.preventDefault()}
-        onDragLeave={(e) => {
-          e.preventDefault();
-          dragCounter.current -= 1;
-          if (dragCounter.current <= 0) setDragging(false);
-        }}
-        onDrop={(e) => {
-          e.preventDefault();
-          dragCounter.current = 0;
-          setDragging(false);
-          if (e.dataTransfer.files.length) acceptFiles(e.dataTransfer.files);
-        }}
-        className={`rounded-lg border border-dashed p-3 text-center transition-colors ${
-          dragging ? "border-brand bg-brandSoft/40" : "border-line"
-        }`}
-      >
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          className="btn-soft btn-sm gap-1.5"
-        >
-          <Upload size={13} /> Attach screenshot / PDF
-        </button>
-        <p className="mt-1.5 text-micro text-faint">or drag and drop it here</p>
-        {proofs.length > 0 && (
-          <ul className="mt-2 space-y-1 text-left">
-            {proofs.map((f, i) => (
-              <li key={i} className="flex items-center gap-1.5 text-micro text-ink">
-                <Paperclip size={11} className="shrink-0 text-faint" />
-                <span className="truncate">{f.name}</span>
-                <button
-                  type="button"
-                  onClick={() => setProofs((cur) => cur.filter((_, j) => j !== i))}
-                  className="ml-auto shrink-0 text-faint hover:text-bad"
-                  aria-label={`Remove ${f.name}`}
-                >
-                  <X size={11} />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-      {rejected && (
-        <p className="mt-1 text-micro text-bad">Only images and PDFs are accepted — that file was skipped.</p>
-      )}
-      {hint && proofs.length === 0 && <p className="mt-1 text-micro text-faint">{hint}</p>}
-    </>
   );
 }

@@ -210,6 +210,10 @@ export interface BoardRow {
   /** True when this is a procure-first order that cannot yet be dispatched —
    *  not paid in full, not credit_regular, and not approved for early dispatch. */
   dispatch_locked_on_payment: boolean;
+  /** True once the order has actually shipped (partially or fully) or been
+   *  delivered while a balance is still outstanding — the "collect on an
+   *  order that already went out" follow-up list. */
+  dispatched_awaiting_payment: boolean;
 }
 
 export interface ProcurementLocation {

@@ -1,4 +1,4 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Banknote } from "lucide-react";
 import { DISPATCH_FLOW, dispatchLabel } from "@/lib/labels";
 import { moneyShort } from "@/lib/format";
 import type { DispatchFilter } from "@/hooks/useBoard";
@@ -18,10 +18,14 @@ export function StatusRail({
   onSelect: (s: DispatchFilter) => void;
 }) {
   const all = Object.entries(totals ?? {}).reduce(
-    (a, [k, t]) => (k === "attention" ? a : { count: a.count + t.count, value: a.value + t.value }),
+    (a, [k, t]) =>
+      k === "attention" || k === "dispatched_awaiting_payment"
+        ? a
+        : { count: a.count + t.count, value: a.value + t.value },
     { count: 0, value: 0 },
   );
   const attention = totals?.attention ?? { count: 0, value: 0 };
+  const awaitingPayment = totals?.dispatched_awaiting_payment ?? { count: 0, value: 0 };
 
   const stages = DISPATCH_FLOW.filter(
     (s) => (totals?.[s]?.count ?? 0) > 0 || active === s,
@@ -73,6 +77,20 @@ export function StatusRail({
           <AlertTriangle size={13} strokeWidth={2.5} />
           Needs attention
           <span className={active === "attention" ? "text-white/80" : ""}>{attention.count}</span>
+        </Chip>
+      )}
+
+      {awaitingPayment.count > 0 && (
+        <Chip
+          on={active === "dispatched_awaiting_payment"}
+          onClick={() => onSelect("dispatched_awaiting_payment")}
+          danger
+        >
+          <Banknote size={13} strokeWidth={2.5} />
+          Collect payment
+          <span className={active === "dispatched_awaiting_payment" ? "text-white/80" : ""}>
+            {awaitingPayment.count}
+          </span>
         </Chip>
       )}
 

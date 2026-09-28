@@ -187,13 +187,15 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
               icon={<Search size={28} />}
               title="No orders in this view"
               hint={
-                filters.datePreset === "today"
-                  ? "Nothing dated today. Widen the date range to see more."
-                  : filters.datePreset === "yesterday"
-                    ? "Nothing dated yesterday. Try a wider date range."
-                    : filters.dispatch !== "all"
-                      ? "No orders at this stage for the chosen filters."
-                      : "Approved orders from Zoho Books show up here automatically."
+                filters.dispatch === "dispatched_awaiting_payment"
+                  ? "Nothing sent out is still owed money right now."
+                  : filters.datePreset === "today"
+                    ? "Nothing dated today. Widen the date range to see more."
+                    : filters.datePreset === "yesterday"
+                      ? "Nothing dated yesterday. Try a wider date range."
+                      : filters.dispatch !== "all"
+                        ? "No orders at this stage for the chosen filters."
+                        : "Approved orders from Zoho Books show up here automatically."
               }
             />
           )}

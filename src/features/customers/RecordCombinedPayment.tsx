@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { CheckCircle2, ChevronDown, Paperclip, Upload, X } from "lucide-react";
+import { CheckCircle2, ChevronDown } from "lucide-react";
 import {
   CARD_NETWORKS,
   INSTANT_METHODS,
@@ -14,6 +14,7 @@ import {
   useRecordCombinedPayment,
 } from "@/hooks/useBoard";
 import { Field, Input, Select } from "@/components/Primitives";
+import { ProofPicker } from "@/features/payments/ProofPicker";
 import type { BoardRow, CardNetwork, PaymentMethod, TransferRail } from "@/types/database";
 
 const istToday = () => {
@@ -59,8 +60,6 @@ export function RecordCombinedPayment({
   const [note, setNote] = useState("");
   const [proofs, setProofs] = useState<File[]>([]);
   const [moreOpen, setMoreOpen] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const dragCounter = useRef(0);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const spec = methodSpec(method);
@@ -137,13 +136,6 @@ export function RecordCombinedPayment({
     (spec.wantsReceipt && proofs.length === 0);
   const valid = !missing;
   const willClearNow = INSTANT_METHODS.includes(method);
-
-  function acceptFiles(files: FileList | File[]) {
-    const accepted = Array.from(files).filter(
-      (f) => f.type.startsWith("image/") || f.type === "application/pdf",
-    );
-    if (accepted.length) setProofs(accepted);
-  }
 
   async function submit() {
     if (!valid || record.isPending) return;
@@ -319,58 +311,12 @@ export function RecordCombinedPayment({
         <p className="mb-1 text-[13px] font-medium text-muted">
           Proof of payment {spec.wantsReceipt && <span className="text-bad">*</span>}
         </p>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*,application/pdf"
-          multiple
-          onChange={(e) => e.target.files && acceptFiles(e.target.files)}
-          className="hidden"
+        <ProofPicker
+          proofs={proofs}
+          setProofs={setProofs}
+          fileRef={fileRef}
+          dropHint="or drag and drop it here — applies to every order above"
         />
-        <div
-          onDragEnter={(e) => {
-            e.preventDefault();
-            dragCounter.current += 1;
-            setDragging(true);
-          }}
-          onDragOver={(e) => e.preventDefault()}
-          onDragLeave={(e) => {
-            e.preventDefault();
-            dragCounter.current -= 1;
-            if (dragCounter.current <= 0) setDragging(false);
-          }}
-          onDrop={(e) => {
-            e.preventDefault();
-            dragCounter.current = 0;
-            setDragging(false);
-            if (e.dataTransfer.files.length) acceptFiles(e.dataTransfer.files);
-          }}
-          className={`rounded-lg border border-dashed p-3 text-center transition-colors ${
-            dragging ? "border-brand bg-brandSoft/40" : "border-line"
-          }`}
-        >
-          <button type="button" onClick={() => fileRef.current?.click()} className="btn-soft btn-sm gap-1.5">
-            <Upload size={13} /> Attach screenshot / PDF
-          </button>
-          <p className="mt-1.5 text-micro text-faint">or drag and drop it here — applies to every order above</p>
-          {proofs.length > 0 && (
-            <ul className="mt-2 space-y-1 text-left">
-              {proofs.map((f, i) => (
-                <li key={i} className="flex items-center gap-1.5 text-micro text-ink">
-                  <Paperclip size={11} className="shrink-0 text-faint" />
-                  <span className="truncate">{f.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => setProofs((cur) => cur.filter((_, j) => j !== i))}
-                    className="ml-auto shrink-0 text-faint hover:text-bad"
-                  >
-                    <X size={11} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
       </div>
 
       <button

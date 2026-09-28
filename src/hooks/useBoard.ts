@@ -28,8 +28,9 @@ import type {
   SyncHealth,
 } from "@/types/database";
 
-/** "attention" is a client-side predicate, not a dispatch_status value. */
-export type DispatchFilter = DispatchStatus | "all" | "attention";
+/** "attention" and "dispatched_awaiting_payment" are client-side predicates,
+ *  not dispatch_status values. */
+export type DispatchFilter = DispatchStatus | "all" | "attention" | "dispatched_awaiting_payment";
 
 /** Order-date window, driven by the date tab strip. */
 export type DatePreset = "all" | "today" | "yesterday" | "week" | "month" | "custom";
@@ -113,6 +114,8 @@ export function useBoard(filters: BoardFilters, role?: string) {
 
       if (filters.dispatch === "attention") {
         q = q.eq("needs_attention", true);
+      } else if (filters.dispatch === "dispatched_awaiting_payment") {
+        q = q.eq("dispatched_awaiting_payment", true);
       } else if (filters.dispatch !== "all") {
         q = q.eq("dispatch_status", filters.dispatch);
       }
@@ -121,11 +124,16 @@ export function useBoard(filters: BoardFilters, role?: string) {
       if (filters.customerType === "credit") q = q.in("customer_credit_status", CREDIT_STATUSES);
       if (filters.salesperson) q = q.eq("salesperson_name", filters.salesperson);
 
-      const range = presetRange(filters.datePreset);
-      const from = range ? range.from : filters.fromDate;
-      const to = range ? range.to : filters.toDate;
-      if (from) q = q.gte("order_date", from);
-      if (to) q = q.lte("order_date", to);
+      // This is a standing "still owed, already sent" follow-up list — it
+      // isn't tied to when the order was placed, so the date tabs don't
+      // apply to it the way they do to every other view of the board.
+      if (filters.dispatch !== "dispatched_awaiting_payment") {
+        const range = presetRange(filters.datePreset);
+        const from = range ? range.from : filters.fromDate;
+        const to = range ? range.to : filters.toDate;
+        if (from) q = q.gte("order_date", from);
+        if (to) q = q.lte("order_date", to);
+      }
       if (filters.search.trim()) {
         const term = `%${filters.search.trim()}%`;
         q = q.or(
@@ -229,6 +237,26 @@ export function useBoardTotals(filters: BoardFilters, role?: string) {
           byStatus.attention.value += Number(r.total ?? 0);
         }
       }
+
+      // Deliberately its own query, not folded into the date-scoped loop
+      // above: this count is a standing alert ("still owed, already sent")
+      // and must stay right regardless of which date tab is active.
+      let awaitingQ = supabase
+        .from("v_ops_board")
+        .select("total", { count: "exact" })
+        .eq("dispatched_awaiting_payment", true);
+      if (role === "warehouse") awaitingQ = awaitingQ.neq("dispatch_status", "awaiting_clearance");
+      if (filters.payment !== "all") awaitingQ = awaitingQ.eq("payment_status", filters.payment);
+      if (filters.customerType === "regular") awaitingQ = awaitingQ.eq("customer_credit_status", "none");
+      if (filters.customerType === "credit") awaitingQ = awaitingQ.in("customer_credit_status", CREDIT_STATUSES);
+      if (filters.salesperson) awaitingQ = awaitingQ.eq("salesperson_name", filters.salesperson);
+      const { data: awaitingRows, count: awaitingCount, error: awaitingError } = await awaitingQ.limit(10000);
+      if (awaitingError) throw awaitingError;
+      byStatus.dispatched_awaiting_payment = {
+        count: awaitingCount ?? awaitingRows?.length ?? 0,
+        value: (awaitingRows ?? []).reduce((s, r) => s + Number((r as { total: number }).total ?? 0), 0),
+      };
+
       return { byStatus, customer };
     },
     staleTime: 30_000,

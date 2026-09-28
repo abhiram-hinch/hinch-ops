@@ -33,6 +33,11 @@ export function Filters({
     !!value.salesperson ||
     value.datePreset !== "today";
 
+  // "Collect payment" is a standing list, not scoped to a date — the date
+  // tabs would silently do nothing while it's active, so disable rather
+  // than let someone widen a range that isn't being applied.
+  const dateDisabled = value.dispatch === "dispatched_awaiting_payment";
+
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Select
@@ -41,17 +46,23 @@ export function Filters({
           const p = e.target.value as DatePreset;
           onChange(p === "custom" ? { datePreset: p } : { datePreset: p, fromDate: "", toDate: "" });
         }}
+        disabled={dateDisabled}
+        title={dateDisabled ? "Collect payment shows every order, regardless of date" : undefined}
         aria-label="Date range"
-        className="h-9 w-auto text-sm"
+        className="h-9 w-auto text-sm disabled:opacity-50"
       >
-        {DATE_OPTIONS.map((o) => (
-          <option key={o.value} value={o.value}>
-            {o.label}
-          </option>
-        ))}
+        {dateDisabled ? (
+          <option>All dates</option>
+        ) : (
+          DATE_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))
+        )}
       </Select>
 
-      {value.datePreset === "custom" && (
+      {!dateDisabled && value.datePreset === "custom" && (
         <>
           <Input
             type="date"

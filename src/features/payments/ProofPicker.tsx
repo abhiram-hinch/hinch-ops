@@ -3,10 +3,34 @@ import { Paperclip, Upload, X } from "lucide-react";
 
 export const PROOF_ACCEPT = "image/*,application/pdf";
 
+const ACCEPTED_EXTENSIONS = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".heic", ".pdf"];
+
 /** image/* or application/pdf, matching the file input's own accept attribute
- *  — dropped and pasted files skip that native filtering, so it's enforced here too. */
+ *  — dropped and pasted files skip that native filtering, so it's enforced here too.
+ *  A pasted file's `.type` is occasionally blank (some clipboard sources don't set
+ *  it), so a known image/PDF extension is accepted as a fallback signal too. */
 export function isAcceptedProofFile(f: File): boolean {
-  return f.type.startsWith("image/") || f.type === "application/pdf";
+  if (f.type.startsWith("image/") || f.type === "application/pdf") return true;
+  if (f.type) return false;
+  const name = f.name.toLowerCase();
+  return ACCEPTED_EXTENSIONS.some((ext) => name.endsWith(ext));
+}
+
+/** Pull files out of a paste's clipboard data. `.items` + `getAsFile()` is the
+ *  reliable cross-browser path for a pasted image — `.files` alone misses real
+ *  OS-triggered pastes (e.g. a copied screenshot) in some Safari/Chrome builds
+ *  even though it works fine for a synthetically-constructed DataTransfer. */
+function filesFromClipboard(data: DataTransfer): File[] {
+  const files: File[] = [];
+  if (data.items && data.items.length > 0) {
+    for (const item of Array.from(data.items)) {
+      if (item.kind !== "file") continue;
+      const f = item.getAsFile();
+      if (f) files.push(f);
+    }
+  }
+  if (files.length === 0 && data.files) files.push(...Array.from(data.files));
+  return files;
 }
 
 /**
@@ -42,9 +66,10 @@ export function ProofPicker({
 
   useEffect(() => {
     function onPaste(e: ClipboardEvent) {
-      const files = e.clipboardData?.files;
-      if (!files || files.length === 0) return;
-      const accepted = Array.from(files).filter(isAcceptedProofFile);
+      if (!e.clipboardData) return;
+      const files = filesFromClipboard(e.clipboardData);
+      if (files.length === 0) return;
+      const accepted = files.filter(isAcceptedProofFile);
       if (accepted.length === 0) return;
       e.preventDefault();
       setRejected(accepted.length < files.length);

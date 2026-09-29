@@ -266,7 +266,7 @@ export const PAYMENT_METHODS: MethodSpec[] = [
   { value: "credit_note", label: "Credit note", refLabel: "Credit note number", needs: [], wantsReceipt: false, selectable: true },
   { value: "advance_adjustment", label: "Advance adjustment", refLabel: "Source SO reference", needs: [], wantsReceipt: false, selectable: true },
   { value: "tds_deducted", label: "TDS deducted", refLabel: "TDS section", needs: [], wantsReceipt: false, selectable: true },
-  { value: "write_off", label: "Write-off", refLabel: null, needs: ["approved_by"], wantsReceipt: false, selectable: true },
+  { value: "write_off", label: "Discount / round-off", refLabel: null, needs: ["approved_by"], wantsReceipt: false, selectable: true },
   { value: "payment_gateway", label: "Payment gateway", refLabel: "Gateway reference", needs: [], wantsReceipt: false, selectable: false },
 ];
 

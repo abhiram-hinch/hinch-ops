@@ -1,4 +1,4 @@
-import { Check, IndianRupee, Pause } from "lucide-react";
+import { Check, IndianRupee, Pause, XCircle } from "lucide-react";
 import { JOURNEY, stepStates, type StepState } from "@/lib/journey";
 import type { BoardRow } from "@/types/database";
 
@@ -27,6 +27,14 @@ export function JourneyTracker({
 }: {
   order: Pick<BoardRow, "dispatch_status" | "stage_before_hold" | "payment_status">;
 }) {
+  if (order.dispatch_status === "cancelled") {
+    return (
+      <p className="flex items-center gap-1.5 text-micro font-medium text-faint">
+        <XCircle size={14} /> Order cancelled — no further steps
+      </p>
+    );
+  }
+
   const states = stepStates(order);
 
   return (
@@ -37,7 +45,11 @@ export function JourneyTracker({
         const lineDone = s === "done" || s === "owed";
         return (
           <li key={step.key} className={`flex min-w-0 items-start ${last ? "" : "flex-1"}`}>
-            <div className="flex w-[18px] shrink-0 flex-col items-center sm:w-auto">
+            <div
+              className={`flex w-[18px] shrink-0 flex-col sm:w-auto ${
+                i === 0 ? "items-start" : last ? "items-end" : "items-center"
+              }`}
+            >
               <span
                 className={`flex h-[18px] w-[18px] items-center justify-center rounded-full ${node[s]}`}
                 aria-current={s === "current" || s === "hold" ? "step" : undefined}

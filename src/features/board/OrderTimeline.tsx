@@ -58,7 +58,8 @@ export function OrderTimeline({
       if (list) list.push(r);
       else m.set(k, [r]);
     }
-    return [...m.entries()];
+    // Undated orders sink to the bottom instead of heading the timeline.
+    return [...m.entries()].sort(([a], [b]) => (a === "" ? 1 : b === "" ? -1 : 0));
   }, [rows]);
 
   return (

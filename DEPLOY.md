@@ -225,8 +225,10 @@ curl -i "https://<ref>.supabase.co/functions/v1/zoho-so-webhook?secret=<SECRET>&
 
 ## WhatsApp new-order alerts (Periskope)
 
-The first time a sales order shows up on the dashboard (approved in Zoho, not
-void/draft/declined), the sync posts one message to an internal WhatsApp group
+The first time a sales order shows up on the dashboard **at the Approved or
+Confirmed stage** in Zoho (`approved`, `confirmed`, or `open` — Zoho Books' name for
+a confirmed order; never draft, pending approval, void, closed or anything later),
+the sync posts one message to an internal WhatsApp group
 with the customer, salesperson, amount and a link that opens the order here.
 It does nothing until **both** the secrets and the start time below are set.
 

@@ -35,6 +35,7 @@ export interface AlertOrder {
   salesperson_name: string | null;
   total: number | string | null;
   dispatch_status: string;
+  zoho_status: string | null;
 }
 
 export type Sender = (cfg: AlertConfig, text: string) => Promise<{ providerMessageId: string | null }>;
@@ -44,6 +45,7 @@ export type AlertResult =
   | "failed"
   | "disabled"
   | "not-visible"
+  | "not-approved-stage"
   | "before-cutoff"
   | "already-handled";
 
@@ -111,7 +113,16 @@ export const periskopeSend: Sender = async (cfg, text) => {
 };
 
 const ORDER_COLUMNS =
-  "id, so_number, quotation_ref, quotation_ref_override, customer_name, salesperson_name, total, dispatch_status";
+  "id, so_number, quotation_ref, quotation_ref_override, customer_name, salesperson_name, total, dispatch_status, zoho_status";
+
+/**
+ * The Zoho stages that count as "approved or confirmed": Approved, and Open
+ * (Zoho Books' name for a confirmed order). An order that first appears here
+ * already closed, invoiced or fulfilled is old news, not a new order to announce.
+ */
+export const ALERT_ZOHO_STATUSES = ["approved", "confirmed", "open"];
+export const isAlertStage = (status: string | null | undefined): boolean =>
+  ALERT_ZOHO_STATUSES.includes(String(status ?? "").toLowerCase());
 
 // The cutoff changes rarely and is read on every upsert, so cache it briefly.
 let cutoffCache: { at: number; value: Date | null } | null = null;
@@ -165,8 +176,9 @@ async function deliver(db: SupabaseClient, order: AlertOrder, cfg: AlertConfig, 
 }
 
 /**
- * Alert the group about this order if it's visible on the dashboard, was
- * created after the switch-on time, and hasn't been alerted yet.
+ * Alert the group about this order if it's visible on the dashboard, is at
+ * the approved/confirmed stage in Zoho, was created after the switch-on time,
+ * and hasn't been alerted yet.
  */
 export async function notifyNewOrder(db: SupabaseClient, orderId: string, deps: AlertDeps = {}): Promise<AlertResult> {
   const cfg = deps.cfg === undefined ? loadAlertConfig() : deps.cfg;
@@ -180,6 +192,7 @@ export async function notifyNewOrder(db: SupabaseClient, orderId: string, deps: 
   const { data: order, error } = await db.from("v_ops_board").select(ORDER_COLUMNS).eq("id", orderId).maybeSingle();
   if (error) throw error;
   if (!order) return "not-visible";
+  if (!isAlertStage(order.zoho_status)) return "not-approved-stage";
 
   const { data: so, error: soError } = await db.from("sales_orders").select("created_at").eq("id", orderId).maybeSingle();
   if (soError) throw soError;
@@ -211,7 +224,7 @@ export async function retryFailedAlerts(db: SupabaseClient, deps: AlertDeps = {}
   let sent = 0;
   for (const row of data ?? []) {
     const { data: order } = await db.from("v_ops_board").select(ORDER_COLUMNS).eq("id", row.sales_order_id).maybeSingle();
-    if (!order) continue;
+    if (!order || !isAlertStage(order.zoho_status)) continue;
     const { data: claimed } = await db.rpc("claim_order_alert", { p_so: row.sales_order_id });
     if (!claimed) continue;
     if ((await deliver(db, order as AlertOrder, cfg, deps.send ?? periskopeSend)) === "sent") sent++;

@@ -10,6 +10,7 @@
 
 import { iterateModifiedSalesOrders } from "../_shared/zoho.ts";
 import { serviceClient, upsertSalesOrder, recordSyncRun } from "../_shared/upsert.ts";
+import { retryFailedAlerts } from "../_shared/notify.ts";
 
 const CURSOR_KEY = "so_last_modified_cursor";
 const OVERLAP_MINUTES = 10; // re-scan window; upserts are idempotent so overlap is free
@@ -73,6 +74,11 @@ Deno.serve(async (req) => {
         `poll: ${seen - upserted} failures — holding cursor so next run retries`,
       );
     }
+
+    // Re-send any new-order alerts that failed since the last run.
+    await retryFailedAlerts(db).catch((e) =>
+      console.error(`alert retry failed: ${e instanceof Error ? e.message : String(e)}`),
+    );
 
     await recordSyncRun(db, "poll", { records_seen: seen, records_upsert: upserted });
     console.log(`poll done seen=${seen} upserted=${upserted} ms=${Date.now() - started}`);

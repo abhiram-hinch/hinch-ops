@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { fetchItem, type ZohoSalesOrder } from "./zoho.ts";
+import { notifyNewOrder } from "./notify.ts";
 
 /** Cached item vendor lookups are refreshed after this long. */
 const ITEM_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
@@ -166,6 +167,13 @@ export async function upsertSalesOrder(
   // Only a full payload has authoritative line items; a thin poll must not
   // prune the lines a detail fetch stored.
   if (isFull) await upsertLines(db, order.id, so.line_items ?? []);
+
+  // First time this order shows up on the dashboard -> tell the team. A no-op
+  // until alerts are switched on, and a notification problem must never fail a sync.
+  await notifyNewOrder(db, order.id).catch((e) =>
+    console.error(`alert: ${order.id}: ${e instanceof Error ? e.message : String(e)}`),
+  );
+
   return { id: order.id, matchedOn };
 }
 

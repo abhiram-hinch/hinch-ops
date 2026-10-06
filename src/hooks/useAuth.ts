@@ -87,9 +87,8 @@ export const canAuthorizeDispatchBeforePayment = (role?: string) =>
   role === "sales" || role === "admin";
 
 /**
- * Site details gate procurement (see site_details_complete() in Postgres),
- * so only the team that's accountable for filling them in — sales — can
- * edit them. Warehouse (and everyone else) reads them. Mirrors the
+ * Sales is accountable for capturing the delivery site, so only they (and
+ * admin) can edit it; warehouse and everyone else read it. Mirrors the
  * write_site_details RLS policy.
  */
 export const canEditSiteDetails = (role?: string) => role === "sales" || role === "admin";

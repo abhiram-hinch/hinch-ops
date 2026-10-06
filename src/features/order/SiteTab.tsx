@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertTriangle, CheckCircle2, MapPin, Store } from "lucide-react";
+import { CheckCircle2, MapPin, Store } from "lucide-react";
 import { BUILDING_TYPES, buildingTypeLabel } from "@/lib/labels";
 import { mapsUrl } from "@/lib/format";
 import { loadGoogleMaps } from "@/lib/googleMaps";
@@ -56,18 +56,6 @@ const LIFT_OPTIONS: { value: string; label: string }[] = [
   { value: "yes", label: "Yes" },
   { value: "no", label: "No" },
 ];
-
-/**
- * Mirrors site_details_complete() in Postgres — keep the two in sync.
- * Floor and service lift are informational only for now, not required.
- */
-function isComplete(data: {
-  is_store_pickup: boolean;
-  maps_url: string | null;
-} | null | undefined): boolean {
-  if (data?.is_store_pickup) return true;
-  return !!data?.maps_url?.trim();
-}
 
 function ReadOnlyRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -151,26 +139,12 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
   }
 
   const maps = data?.maps_url || mapsUrl(order.ship_to);
-  // Sales gets live feedback as they fill the form or flip the toggle;
-  // warehouse (read-only) only ever sees what's actually been saved.
-  const complete = mayEdit ? pickupMode || !!mapsOverride.trim() : isComplete(data);
   const effectivePickup = mayEdit ? pickupMode : !!data?.is_store_pickup;
 
   if (isLoading) return <Skeleton rows={5} />;
 
   return (
     <div className="space-y-4">
-      {!complete && (
-        <div className="flex items-start gap-1.5 rounded-md bg-warnSoft/40 px-2.5 py-1.5 text-micro text-warn">
-          <AlertTriangle size={12} className="mt-0.5 shrink-0" />
-          <span>
-            Precise location is needed before <strong>Ready to procure</strong> — or mark it a
-            store pickup.
-            {!mayEdit && " Sales needs to fill this in."}
-          </span>
-        </div>
-      )}
-
       {!mayEdit && effectivePickup && <StorePickupNotice />}
 
       {!effectivePickup && (
@@ -278,7 +252,7 @@ export function SiteTab({ order, profile }: { order: BoardRow; profile: Profile 
               </div>
 
               <div className="mt-3">
-                <p className="mb-1 text-sm font-medium text-muted">Precise location *</p>
+                <p className="mb-1 text-sm font-medium text-muted">Precise location</p>
                 <Input
                   ref={mapsInputRef}
                   value={mapsOverride}

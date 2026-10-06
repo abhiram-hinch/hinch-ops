@@ -69,27 +69,46 @@ export function loadAlertConfig(): AlertConfig | null {
   };
 }
 
-const STAGE_LABEL: Record<string, string> = {
-  awaiting_clearance: "Awaiting payment",
-  to_be_ordered: "Ready to procure",
+const STAGE: Record<string, { icon: string; label: string; next?: string }> = {
+  awaiting_clearance: { icon: "⏳", label: "Awaiting payment", next: "Next: payment to be recorded" },
+  to_be_ordered: { icon: "✅", label: "Ready to procure", next: "Next: warehouse can start procurement" },
 };
 
 const inr = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
 
-/** The message body. WhatsApp markdown: *bold*. Kept free of anything sensitive. */
+/** WhatsApp has no escape character, so strip its formatting marks (and line
+ *  breaks) from user-entered text — a name like "Cus_Harish_Sir" must not turn italic. */
+const clean = (v: string | null | undefined, max = 80): string =>
+  String(v ?? "")
+    .replace(/[*_~`]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, max);
+
+const RULE = "━━━━━━━━━━━━━━";
+
+/** The message body. WhatsApp markdown: *bold*, _italic_. Nothing sensitive beyond what the team already sees. */
 export function formatOrderAlert(o: AlertOrder, dashboardUrl: string): string {
-  const quote = o.quotation_ref_override ?? o.quotation_ref;
-  const lines = [
-    `*New sales order* ${o.so_number ?? ""}`.trim(),
-    `Customer: ${o.customer_name ?? "—"}`,
-    ...(o.salesperson_name ? [`Salesperson: ${o.salesperson_name}`] : []),
-    `Amount: ${inr.format(Number(o.total ?? 0))}`,
-    ...(quote ? [`Quote: ${quote}`] : []),
-    `Stage: ${STAGE_LABEL[o.dispatch_status] ?? o.dispatch_status}`,
+  const quote = clean(o.quotation_ref_override ?? o.quotation_ref);
+  const salesperson = clean(o.salesperson_name);
+  const stage = STAGE[o.dispatch_status] ?? { icon: "📌", label: clean(o.dispatch_status.replace(/_/g, " ")) };
+  const amount = Number(o.total ?? 0);
+
+  return [
+    "🆕 *NEW SALES ORDER*",
+    RULE,
+    `📄 *${clean(o.so_number) || "—"}*`,
     "",
-    `Please process it in the dashboard: ${dashboardUrl}/?order=${o.id}`,
-  ];
-  return lines.join("\n");
+    `🏢 *Customer:* ${clean(o.customer_name) || "—"}`,
+    ...(salesperson ? [`👤 *Salesperson:* ${salesperson}`] : []),
+    `💰 *Amount:* ${inr.format(Number.isFinite(amount) ? amount : 0)}`,
+    ...(quote ? [`🧾 *Quote:* ${quote}`] : []),
+    `${stage.icon} *Stage:* ${stage.label}`,
+    ...(stage.next ? [`_${stage.next}_`] : []),
+    RULE,
+    "👉 *Process it in the dashboard:*",
+    `${dashboardUrl}/?order=${o.id}`,
+  ].join("\n");
 }
 
 /** Periskope: POST /message/send. Returns once the message is accepted (queued). */

@@ -220,3 +220,43 @@ curl -i "https://<ref>.supabase.co/functions/v1/zoho-so-webhook?secret=<SECRET>&
 | `zoho-so-webhook` | Zoho workflow rule (real time) | full sync of one order: detail + line items + PDF |
 | `zoho-so-poll` | `pg_cron` every 15 min, or "Sync now" button | thin reconcile — catches anything a webhook missed |
 | `zoho-so-detail` | dashboard opens an order | fills detail + PDF for orders only the poll has seen |
+
+---
+
+## WhatsApp new-order alerts (Periskope)
+
+The first time a sales order shows up on the dashboard **at the Approved or
+Confirmed stage** in Zoho (`approved`, `confirmed`, or `open` — Zoho Books' name for
+a confirmed order; never draft, pending approval, void, closed or anything later),
+the sync posts one message to an internal WhatsApp group
+with the customer, salesperson, amount and a link that opens the order here.
+It does nothing until **both** the secrets and the start time below are set.
+
+1. **Secrets** (Periskope → Settings → API for the key):
+
+   ```bash
+   supabase secrets set \
+     PERISKOPE_API_KEY="..." \
+     PERISKOPE_GROUP_CHAT_ID="<id>@g.us" \
+     DASHBOARD_URL="https://hinch-ops.pages.dev"
+   # optional: PERISKOPE_PHONE="919876543210"
+   ```
+
+   Find the group's chat id with `GET https://api.periskope.app/v1/chats`
+   (`Authorization: Bearer <key>`, filter `chat_type` for groups) — it ends in `@g.us`.
+
+2. **Deploy** the functions that call it: `supabase functions deploy zoho-so-webhook --no-verify-jwt`,
+   `supabase functions deploy zoho-so-poll`, `supabase functions deploy zoho-so-detail`.
+
+3. **Switch on** — only orders created from this moment on are ever alerted, so the
+   orders already in the system never trigger a message:
+
+   ```sql
+   update app_config set value = to_jsonb(now()) where key = 'order_alerts_from';
+   ```
+
+   **Pause** at any time with `update app_config set value = 'null'::jsonb where key = 'order_alerts_from';`.
+
+Each order is alerted at most once. A failed send is retried by the 15-minute poll
+(3 attempts). See what was sent, and any errors, with
+`select * from order_alerts order by created_at desc` (admin only).

@@ -1,8 +1,14 @@
 import { createClient, SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { fetchItem, type ZohoSalesOrder } from "./zoho.ts";
+import { notifyNewOrder } from "./notify.ts";
+import { itemVendor } from "./itemVendor.ts";
 
-/** Cached item vendor lookups are refreshed after this long. */
-const ITEM_CACHE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
+/**
+ * Cached item vendor lookups are refreshed after this long. Short, because the
+ * Vendor custom field is edited by hand in Zoho and people expect a change to
+ * show up soon; the cost is at most one Zoho call per distinct item per day.
+ */
+const ITEM_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
 
 export function serviceClient(): SupabaseClient {
   return createClient(
@@ -166,14 +172,21 @@ export async function upsertSalesOrder(
   // Only a full payload has authoritative line items; a thin poll must not
   // prune the lines a detail fetch stored.
   if (isFull) await upsertLines(db, order.id, so.line_items ?? []);
+
+  // First time this order shows up on the dashboard -> tell the team. A no-op
+  // until alerts are switched on, and a notification problem must never fail a sync.
+  await notifyNewOrder(db, order.id).catch((e) =>
+    console.error(`alert: ${order.id}: ${e instanceof Error ? e.message : String(e)}`),
+  );
+
   return { id: order.id, matchedOn };
 }
 
 /**
- * Resolve each item_id's vendor via a write-through cache — most items
- * repeat across many orders, so this costs one Zoho call per distinct
- * item ever seen (or every ITEM_CACHE_TTL_MS, in case a preferred vendor
- * changes), not one per line or per order.
+ * Resolve each item_id's vendor (the item's `cf_vendor` custom field, see
+ * itemVendor.ts) via a write-through cache — most items repeat across many
+ * orders, so this costs one Zoho call per distinct item per ITEM_CACHE_TTL_MS,
+ * not one per line or per order.
  */
 async function resolveVendorNames(
   db: SupabaseClient,
@@ -198,17 +211,7 @@ async function resolveVendorNames(
       continue;
     }
     try {
-      const item = await fetchItem(itemId);
-      const vendorName = item.vendor_name?.trim() || null;
-      result.set(itemId, vendorName);
-      const { error: upsertErr } = await db.from("zoho_items").upsert({
-        zoho_item_id: itemId,
-        name: item.name ?? null,
-        vendor_id: item.vendor_id || null,
-        vendor_name: vendorName,
-        last_synced_at: new Date().toISOString(),
-      });
-      if (upsertErr) console.error(`Cache item ${itemId}: ${upsertErr.message}`);
+      result.set(itemId, await refreshItemVendor(db, itemId));
     } catch (e) {
       // A lookup failure shouldn't fail the whole SO sync — fall back to
       // whatever's cached (possibly stale), or leave it unresolved.
@@ -217,6 +220,57 @@ async function resolveVendorNames(
     }
   }
   return result;
+}
+
+/** Fetch one item from Zoho and write its vendor through to the cache. */
+async function refreshItemVendor(db: SupabaseClient, itemId: string): Promise<string | null> {
+  const item = await fetchItem(itemId);
+  const vendor = itemVendor(item);
+  const { error } = await db.from("zoho_items").upsert({
+    zoho_item_id: itemId,
+    name: item.name ?? null,
+    vendor_id: vendor.id,
+    vendor_name: vendor.name,
+    last_synced_at: new Date().toISOString(),
+  });
+  if (error) console.error(`Cache item ${itemId}: ${error.message}`);
+  return vendor.name;
+}
+
+/**
+ * Re-resolve the vendor of the cached items that have gone longest without a
+ * refresh, `limit` per call. Called from the 15-minute poll so that (a) items
+ * on orders that haven't been touched in Zoho still pick up edits to their
+ * Vendor field, and (b) after the source of the vendor changed, the whole
+ * cache converges in a few hours without a one-off backfill and without
+ * bursting Zoho's rate limit. A changed vendor reaches the order lines through
+ * the propagate_item_vendor trigger on zoho_items.
+ */
+export async function refreshStaleItemVendors(
+  db: SupabaseClient,
+  limit = 40,
+): Promise<{ refreshed: number; failed: number }> {
+  const stale = new Date(Date.now() - ITEM_CACHE_TTL_MS).toISOString();
+  const { data, error } = await db
+    .from("zoho_items")
+    .select("zoho_item_id")
+    .lt("last_synced_at", stale)
+    .order("last_synced_at", { ascending: true })
+    .limit(limit);
+  if (error) throw new Error(`Read stale zoho_items: ${error.message}`);
+
+  let refreshed = 0;
+  let failed = 0;
+  for (const row of data ?? []) {
+    try {
+      await refreshItemVendor(db, row.zoho_item_id as string);
+      refreshed++;
+    } catch (e) {
+      failed++;
+      console.error(`Refresh item ${row.zoho_item_id}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+  return { refreshed, failed };
 }
 
 async function upsertLines(

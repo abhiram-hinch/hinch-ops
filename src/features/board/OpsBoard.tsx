@@ -14,6 +14,8 @@ import { canClearPayments } from "@/hooks/useAuth";
 import { Empty, ErrorNote, Skeleton } from "@/components/Primitives";
 import { StatusRail } from "./StatusRail";
 import { OrderTable } from "./OrderTable";
+import { OrderTimeline } from "./OrderTimeline";
+import { LayoutToggle, readLayout, saveLayout, type BoardLayout } from "./LayoutToggle";
 import { Filters } from "./Filters";
 import { CustomerTypeTabs } from "./CustomerTypeTabs";
 import { SyncStatus } from "./SyncStatus";
@@ -30,6 +32,11 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
   const [filters, setFilters] = useState<BoardFilters>(initial.filters);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
   const [view, setView] = useState<"board" | "queue" | "analytics" | "customers" | "aging">("board");
+  const [layout, setLayout] = useState<BoardLayout>(() => readLayout());
+  const changeLayout = (l: BoardLayout) => {
+    setLayout(l);
+    saveLayout(l);
+  };
   const mayClear = canClearPayments(profile.role);
   const isAdmin = profile.role === "admin";
   const { data: pendingQueue } = usePaymentQueue(mayClear);
@@ -181,12 +188,17 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
           />
         </div>
 
-        <div className="mt-3">
+        <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+          <div className="min-w-0 flex-1">
           <StatusRail
             totals={totals?.byStatus}
             active={filters.dispatch}
             onSelect={(dispatch) => patch({ dispatch })}
           />
+          </div>
+          <div className="self-end sm:self-auto">
+            <LayoutToggle value={layout} onChange={changeLayout} />
+          </div>
         </div>
 
         <div className="mt-4">
@@ -211,8 +223,16 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
             />
           )}
 
-          {rows && rows.length > 0 && (
+          {rows && rows.length > 0 && layout === "cards" && (
             <OrderTable
+              rows={rows}
+              touched={touched}
+              selectedId={selectedId}
+              onSelect={(r: BoardRow) => setSelectedId(r.id)}
+            />
+          )}
+          {rows && rows.length > 0 && layout === "timeline" && (
+            <OrderTimeline
               rows={rows}
               touched={touched}
               selectedId={selectedId}

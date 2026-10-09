@@ -9,7 +9,8 @@
  */
 
 import { iterateModifiedSalesOrders } from "../_shared/zoho.ts";
-import { serviceClient, upsertSalesOrder, recordSyncRun } from "../_shared/upsert.ts";
+import { serviceClient, upsertSalesOrder, recordSyncRun, refreshStaleItemVendors } from "../_shared/upsert.ts";
+import { retryFailedAlerts } from "../_shared/notify.ts";
 
 const CURSOR_KEY = "so_last_modified_cursor";
 const OVERLAP_MINUTES = 10; // re-scan window; upserts are idempotent so overlap is free
@@ -74,8 +75,19 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Re-send any new-order alerts that failed since the last run.
+    await retryFailedAlerts(db).catch((e) =>
+      console.error(`alert retry failed: ${e instanceof Error ? e.message : String(e)}`),
+    );
+
+    // Keep item vendors (the Vendor custom field) current, a batch per run.
+    const vendors = await refreshStaleItemVendors(db).catch((e) => {
+      console.error(`vendor refresh failed: ${e instanceof Error ? e.message : String(e)}`);
+      return { refreshed: 0, failed: 0 };
+    });
+
     await recordSyncRun(db, "poll", { records_seen: seen, records_upsert: upserted });
-    console.log(`poll done seen=${seen} upserted=${upserted} ms=${Date.now() - started}`);
+    console.log(`poll done seen=${seen} upserted=${upserted} vendors=${vendors.refreshed}/${vendors.failed} ms=${Date.now() - started}`);
 
     return json({ ok: true, seen, upserted });
   } catch (err) {

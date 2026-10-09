@@ -1,0 +1,22 @@
+{
+  "_note": "GET /books/v3/items/1889591000015397587 from our own org (60030102545), trimmed to the fields the vendor logic reads. Preferred Vendor (vendor_id/vendor_name) is empty here while the Vendor custom field is set.",
+  "item": {
+    "item_id": "1889591000015397587",
+    "name": "01 - Excluzio 9 Ft x 1 Ft - 8 MM - Decorative Louvers",
+    "vendor_id": "",
+    "vendor_name": "",
+    "preferred_vendors": [],
+    "custom_fields": [
+      { "api_name": "cf_brand_name", "label": "Brand Name", "data_type": "string", "value": "Excluzio", "value_formatted": "Excluzio" },
+      { "api_name": "cf_category", "label": "Category", "data_type": "dropdown", "value": "Louvers", "value_formatted": "Louvers" },
+      { "api_name": "cf_vendor", "label": "Vendor", "data_type": "lookup", "related_entity": "vendor", "value": "1889591000010312089", "value_formatted": "SRI GANESH PLYWOOD" }
+    ],
+    "custom_field_hash": {
+      "cf_brand_name": "Excluzio",
+      "cf_category": "Louvers",
+      "cf_vendor": "SRI GANESH PLYWOOD",
+      "cf_vendor_formatted": "SRI GANESH PLYWOOD",
+      "cf_vendor_unformatted": "1889591000010312089"
+    }
+  }
+}

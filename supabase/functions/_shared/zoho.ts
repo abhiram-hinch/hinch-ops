@@ -122,10 +122,10 @@ export async function fetchSalesOrder(salesorderId: string): Promise<ZohoSalesOr
 }
 
 /**
- * Fetch a single catalog item — used to resolve its preferred vendor
- * (Purchase Information -> Preferred Vendor in Zoho Books). This is a
- * different API surface than the sales order itself; Zoho has no vendor
- * concept on an SO line, only on the item it references.
+ * Fetch a single catalog item — used to resolve its vendor (the item's
+ * "Vendor" custom field, `cf_vendor`; see itemVendor.ts). This is a different
+ * API surface than the sales order itself; Zoho has no vendor concept on an
+ * SO line, only on the item it references.
  */
 export async function fetchItem(itemId: string): Promise<ZohoItem> {
   const body = await zohoGet<{ item: ZohoItem }>({ path: `/items/${itemId}` });
@@ -234,8 +234,12 @@ export interface ZohoLineItem {
 export interface ZohoItem {
   item_id: string;
   name?: string;
+  /** Purchase Information -> Preferred Vendor. Not what we show; see itemVendor.ts. */
   vendor_id?: string;
   vendor_name?: string;
+  /** Custom fields, including the `cf_vendor` lookup we do show. */
+  custom_field_hash?: Record<string, unknown>;
+  custom_fields?: Array<{ api_name?: string; value?: unknown; value_formatted?: unknown }>;
   [key: string]: unknown;
 }
 

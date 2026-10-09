@@ -23,6 +23,7 @@ import { OrderPanel } from "@/features/order/OrderPanel";
 import { PaymentQueue } from "@/features/payments/PaymentQueue";
 import { AnalyticsPage } from "@/features/analytics/AnalyticsPage";
 import { CustomersPage } from "@/features/customers/CustomersPage";
+import { AgingPage } from "@/features/aging/AgingPage";
 import { AccountMenu } from "@/features/auth/AccountMenu";
 import type { BoardRow, Profile } from "@/types/database";
 
@@ -30,7 +31,7 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
   const initial = useMemo(() => readBoardState(), []);
   const [filters, setFilters] = useState<BoardFilters>(initial.filters);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
-  const [view, setView] = useState<"board" | "queue" | "analytics" | "customers">("board");
+  const [view, setView] = useState<"board" | "queue" | "analytics" | "customers" | "aging">("board");
   const [layout, setLayout] = useState<BoardLayout>(() => readLayout());
   const changeLayout = (l: BoardLayout) => {
     setLayout(l);
@@ -110,6 +111,14 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
             >
               Customers
             </button>
+            <button
+              onClick={() => setView("aging")}
+              className={`rounded-pill px-3 py-1 text-sm font-semibold ${
+                view === "aging" ? "bg-brand text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              Aging
+            </button>
             {mayClear && (
               <button
                 onClick={() => setView("queue")}
@@ -154,6 +163,8 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
           <AnalyticsPage />
         ) : view === "customers" ? (
           <CustomersPage profile={profile} onSelectOrder={setSelectedId} />
+        ) : view === "aging" ? (
+          <AgingPage role={profile.role} onSelectOrder={setSelectedId} />
         ) : (
         <>
         {/* One calm toolbar: the customer lens, then date / payment / person */}

@@ -78,7 +78,7 @@ const inr = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR",
 
 /** WhatsApp has no escape character, so strip its formatting marks (and line
  *  breaks) from user-entered text — a name like "Cus_Harish_Sir" must not turn italic. */
-const clean = (v: string | null | undefined, max = 80): string =>
+export const clean = (v: string | null | undefined, max = 80): string =>
   String(v ?? "")
     .replace(/[*_~`]/g, " ")
     .replace(/\s+/g, " ")

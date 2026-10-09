@@ -21,6 +21,8 @@ import { OrderPanel } from "@/features/order/OrderPanel";
 import { PaymentQueue } from "@/features/payments/PaymentQueue";
 import { AnalyticsPage } from "@/features/analytics/AnalyticsPage";
 import { CustomersPage } from "@/features/customers/CustomersPage";
+import { PartlySentPage } from "@/features/partly/PartlySentPage";
+import { usePartlySent } from "@/hooks/usePartlySent";
 import { AccountMenu } from "@/features/auth/AccountMenu";
 import type { BoardRow, Profile } from "@/types/database";
 
@@ -28,7 +30,13 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
   const initial = useMemo(() => readBoardState(), []);
   const [filters, setFilters] = useState<BoardFilters>(initial.filters);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
-  const [view, setView] = useState<"board" | "queue" | "analytics" | "customers">("board");
+  // The daily WhatsApp nudge links to /?view=partly, so land straight on that tab.
+  const [view, setView] = useState<"board" | "queue" | "analytics" | "customers" | "partly">(() =>
+    new URLSearchParams(window.location.search).get("view") === "partly" ? "partly" : "board",
+  );
+  const { data: partlySent } = usePartlySent();
+  const partlyCount = partlySent?.length ?? 0;
+  const partlyOverdue = (partlySent ?? []).some((o) => (o.days_since_last_dispatch ?? 0) >= 7);
   const mayClear = canClearPayments(profile.role);
   const isAdmin = profile.role === "admin";
   const { data: pendingQueue } = usePaymentQueue(mayClear);
@@ -96,6 +104,23 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
               Board
             </button>
             <button
+              onClick={() => setView("partly")}
+              className={`flex items-center gap-1.5 rounded-pill px-3 py-1 text-sm font-semibold ${
+                view === "partly" ? "bg-brand text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              Partly sent
+              {partlyCount > 0 && (
+                <span
+                  className={`inline-flex min-w-[18px] items-center justify-center rounded-pill px-1 text-micro font-bold ${
+                    view === "partly" ? "bg-white/25 text-white" : partlyOverdue ? "bg-bad text-white" : "bg-warn text-white"
+                  }`}
+                >
+                  {partlyCount}
+                </span>
+              )}
+            </button>
+            <button
               onClick={() => setView("customers")}
               className={`rounded-pill px-3 py-1 text-sm font-semibold ${
                 view === "customers" ? "bg-brand text-white" : "text-muted hover:text-ink"
@@ -145,6 +170,8 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
           <PaymentQueue profile={profile} />
         ) : view === "analytics" ? (
           <AnalyticsPage />
+        ) : view === "partly" ? (
+          <PartlySentPage onSelectOrder={setSelectedId} />
         ) : view === "customers" ? (
           <CustomersPage profile={profile} onSelectOrder={setSelectedId} />
         ) : (

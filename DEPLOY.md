@@ -260,29 +260,3 @@ It does nothing until **both** the secrets and the start time below are set.
 Each order is alerted at most once. A failed send is retried by the 15-minute poll
 (3 attempts). See what was sent, and any errors, with
 `select * from order_alerts order by created_at desc` (admin only).
-
----
-
-## Daily "partly sent orders" nudge (Periskope)
-
-Every Monday–Saturday at 10:00 IST a message goes to the **operations group** listing
-each order that has been partly sent and is still waiting on the rest — oldest dispatch
-first, with what's pending and a link that opens the dashboard's **Partly sent** tab
-(`/?view=partly`). Nothing is sent on a day when nothing is pending. The same list is on
-the Partly sent tab, with a count badge, so it's visible whenever someone opens the app.
-
-An order whose only open line is a *service* line (e.g. a delivery charge) is called out as
-"all goods sent — close the order out", because that's why it's still partly sent.
-
-1. `supabase db push --linked` (adds `v_partly_sent`, `daily_digests` and the cron job).
-2. Deploy: `supabase functions deploy pending-dispatch-digest`
-3. Turn it on by setting the group (the Periskope key and `DASHBOARD_URL` are already set):
-
-   ```bash
-   supabase secrets set PERISKOPE_OPS_GROUP_CHAT_ID="<id>@g.us"
-   ```
-
-   Until that secret exists the function does nothing. Remove it to stop the nudge.
-
-Run it by hand any time with `select trigger_pending_digest();` — it still sends at most one
-digest per day (`select * from daily_digests` shows what went out).

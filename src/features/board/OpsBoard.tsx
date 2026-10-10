@@ -14,6 +14,8 @@ import { canClearPayments } from "@/hooks/useAuth";
 import { Empty, ErrorNote, Skeleton } from "@/components/Primitives";
 import { StatusRail } from "./StatusRail";
 import { OrderTable } from "./OrderTable";
+import { OrderTimeline } from "./OrderTimeline";
+import { LayoutToggle, readLayout, saveLayout, type BoardLayout } from "./LayoutToggle";
 import { Filters } from "./Filters";
 import { CustomerTypeTabs } from "./CustomerTypeTabs";
 import { SyncStatus } from "./SyncStatus";
@@ -21,6 +23,7 @@ import { OrderPanel } from "@/features/order/OrderPanel";
 import { PaymentQueue } from "@/features/payments/PaymentQueue";
 import { AnalyticsPage } from "@/features/analytics/AnalyticsPage";
 import { CustomersPage } from "@/features/customers/CustomersPage";
+import { AgingPage } from "@/features/aging/AgingPage";
 import { PartlySentPage } from "@/features/partly/PartlySentPage";
 import { usePartlySent } from "@/hooks/usePartlySent";
 import { AccountMenu } from "@/features/auth/AccountMenu";
@@ -30,13 +33,18 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
   const initial = useMemo(() => readBoardState(), []);
   const [filters, setFilters] = useState<BoardFilters>(initial.filters);
   const [selectedId, setSelectedId] = useState<string | null>(initial.selectedId);
-  // The daily WhatsApp nudge links to /?view=partly, so land straight on that tab.
-  const [view, setView] = useState<"board" | "queue" | "analytics" | "customers" | "partly">(() =>
+  // /?view=partly opens straight on the Partly sent tab (bookmarkable).
+  const [view, setView] = useState<"board" | "queue" | "analytics" | "customers" | "aging" | "partly">(() =>
     new URLSearchParams(window.location.search).get("view") === "partly" ? "partly" : "board",
   );
   const { data: partlySent } = usePartlySent();
   const partlyCount = partlySent?.length ?? 0;
   const partlyOverdue = (partlySent ?? []).some((o) => (o.days_since_last_dispatch ?? 0) >= 7);
+  const [layout, setLayout] = useState<BoardLayout>(() => readLayout());
+  const changeLayout = (l: BoardLayout) => {
+    setLayout(l);
+    saveLayout(l);
+  };
   const mayClear = canClearPayments(profile.role);
   const isAdmin = profile.role === "admin";
   const { data: pendingQueue } = usePaymentQueue(mayClear);
@@ -128,6 +136,14 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
             >
               Customers
             </button>
+            <button
+              onClick={() => setView("aging")}
+              className={`rounded-pill px-3 py-1 text-sm font-semibold ${
+                view === "aging" ? "bg-brand text-white" : "text-muted hover:text-ink"
+              }`}
+            >
+              Aging
+            </button>
             {mayClear && (
               <button
                 onClick={() => setView("queue")}
@@ -174,6 +190,8 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
           <PartlySentPage onSelectOrder={setSelectedId} />
         ) : view === "customers" ? (
           <CustomersPage profile={profile} onSelectOrder={setSelectedId} />
+        ) : view === "aging" ? (
+          <AgingPage role={profile.role} onSelectOrder={setSelectedId} />
         ) : (
         <>
         {/* One calm toolbar: the customer lens, then date / payment / person */}
@@ -197,12 +215,17 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
           />
         </div>
 
-        <div className="mt-3">
+        <div className="mt-3 flex flex-col-reverse gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+          <div className="min-w-0 flex-1">
           <StatusRail
             totals={totals?.byStatus}
             active={filters.dispatch}
             onSelect={(dispatch) => patch({ dispatch })}
           />
+          </div>
+          <div className="self-end sm:self-auto">
+            <LayoutToggle value={layout} onChange={changeLayout} />
+          </div>
         </div>
 
         <div className="mt-4">
@@ -227,8 +250,16 @@ export function OpsBoard({ profile, email }: { profile: Profile; email: string }
             />
           )}
 
-          {rows && rows.length > 0 && (
+          {rows && rows.length > 0 && layout === "cards" && (
             <OrderTable
+              rows={rows}
+              touched={touched}
+              selectedId={selectedId}
+              onSelect={(r: BoardRow) => setSelectedId(r.id)}
+            />
+          )}
+          {rows && rows.length > 0 && layout === "timeline" && (
+            <OrderTimeline
               rows={rows}
               touched={touched}
               selectedId={selectedId}

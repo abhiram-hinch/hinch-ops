@@ -1,0 +1,18 @@
+{
+  "_note": "GET /books/v3/items/1889591000001474381 from our own org, trimmed. Only the Preferred Vendor is set; the Vendor custom field (cf_vendor) is absent from custom_fields and custom_field_hash.",
+  "item": {
+    "item_id": "1889591000001474381",
+    "name": "FEVICOL HIPER 20KGS",
+    "vendor_id": "1889591000000062071",
+    "vendor_name": "BALAJEE PLY AND VENEER",
+    "preferred_vendors": [{ "vendor_id": "1889591000000062071", "vendor_name": "BALAJEE PLY AND VENEER", "is_primary": true }],
+    "custom_fields": [
+      { "api_name": "cf_brand_name", "label": "Brand Name", "data_type": "string", "value": "hiper", "value_formatted": "hiper" },
+      { "api_name": "cf_category", "label": "Category", "data_type": "dropdown", "value": "Adhesives", "value_formatted": "Adhesives" }
+    ],
+    "custom_field_hash": {
+      "cf_brand_name": "hiper",
+      "cf_category": "Adhesives"
+    }
+  }
+}
